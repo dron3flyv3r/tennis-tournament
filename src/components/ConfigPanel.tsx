@@ -301,7 +301,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ onStartTournament }) => {
             value={courtInput}
             onChange={(e) => setCourtInput(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
+              if (e.key === 'Enter') {
                 e.preventDefault();
                 handleAddCourt();
               }
@@ -349,7 +349,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ onStartTournament }) => {
             value={newPlayerName}
             onChange={(e) => setNewPlayerName(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
+              if (e.key === 'Enter') {
                 e.preventDefault();
                 handleAddPlayer();
               }
