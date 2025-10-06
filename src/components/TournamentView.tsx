@@ -97,6 +97,17 @@ const TournamentView: React.FC<TournamentViewProps> = ({
     setExpandedRounds(new Set());
   };
 
+  // Function to get players on the bench for a specific round
+  const getPlayersOnBench = (round: Round): Player[] => {
+    const playingPlayerIds = new Set<string>();
+    round.matches.forEach(match => {
+      match.team1.forEach(p => playingPlayerIds.add(p.id));
+      match.team2.forEach(p => playingPlayerIds.add(p.id));
+    });
+    
+    return players.filter(p => !playingPlayerIds.has(p.id));
+  };
+
   const handleGenerateReport = () => {
     setShowReport(true);
   };
@@ -243,6 +254,18 @@ const TournamentView: React.FC<TournamentViewProps> = ({
                         />
                       ))}
                     </div>
+                    {getPlayersOnBench(round).length > 0 && (
+                      <div className="bench-section">
+                        <h4 className="bench-title">🪑 On the Bench:</h4>
+                        <div className="bench-players">
+                          {getPlayersOnBench(round).map(player => (
+                            <span key={player.id} className="bench-player">
+                              {player.name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

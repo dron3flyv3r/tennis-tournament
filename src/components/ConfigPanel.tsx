@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { Player, TournamentConfig } from '../types';
+import type { Player, TournamentConfig, ScheduledBreak } from '../types';
 import './ConfigPanel.css';
 
 interface ConfigPanelProps {
@@ -14,6 +14,8 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ onStartTournament }) => {
     courts: ['Court 1', 'Court 2'],
     startTime: '09:00',
     matchDuration: 60,
+    breakDuration: 0,
+    scheduledBreaks: [],
     enforceNonRepeatingMatches: true,
     enforceFairMatches: true,
     allowBypass: true,
@@ -27,6 +29,8 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ onStartTournament }) => {
   const [newPlayerName, setNewPlayerName] = useState('');
   const [newPlayerSkill, setNewPlayerSkill] = useState(5);
   const [courtInput, setCourtInput] = useState('');
+  const [breakTime, setBreakTime] = useState('12:00');
+  const [breakDuration, setBreakDuration] = useState(30);
 
   const handleAddPlayer = () => {
     if (newPlayerName.trim()) {
@@ -65,6 +69,27 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ onStartTournament }) => {
     setConfig({
       ...config,
       courts: config.courts.filter((_, i) => i !== index),
+    });
+  };
+
+  const handleAddScheduledBreak = () => {
+    const newBreak: ScheduledBreak = {
+      id: Date.now().toString(),
+      time: breakTime,
+      duration: breakDuration,
+    };
+    setConfig({
+      ...config,
+      scheduledBreaks: [...config.scheduledBreaks, newBreak].sort((a, b) => a.time.localeCompare(b.time)),
+    });
+    setBreakTime('12:00');
+    setBreakDuration(30);
+  };
+
+  const handleRemoveScheduledBreak = (id: string) => {
+    setConfig({
+      ...config,
+      scheduledBreaks: config.scheduledBreaks.filter(b => b.id !== id),
     });
   };
 
@@ -174,6 +199,20 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ onStartTournament }) => {
           />
         </div>
 
+        <div className="form-group">
+          <label>Break Between Matches (minutes):</label>
+          <input
+            type="number"
+            min="0"
+            max="60"
+            value={config.breakDuration}
+            onChange={(e) => setConfig({ ...config, breakDuration: parseInt(e.target.value) || 0 })}
+            inputMode="numeric"
+            pattern="[0-9]*"
+            enterKeyHint="next"
+          />
+        </div>
+
         <div className="form-group checkbox-group">
           <label>
             <input
@@ -205,6 +244,41 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ onStartTournament }) => {
             />
             Allow Bypass if Constraints Cannot Be Met
           </label>
+        </div>
+      </div>
+
+      <div className="config-section">
+        <h2>Scheduled Breaks (Optional)</h2>
+        <p className="section-description">Add specific breaks at certain times (e.g., lunch break)</p>
+        <div className="breaks-list">
+          {config.scheduledBreaks.map((scheduledBreak) => (
+            <div key={scheduledBreak.id} className="break-item">
+              <span>⏸️ {scheduledBreak.time} - {scheduledBreak.duration} min</span>
+              <button type="button" onClick={() => handleRemoveScheduledBreak(scheduledBreak.id)} className="btn-remove">
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+        <div className="add-break">
+          <input
+            type="time"
+            value={breakTime}
+            onChange={(e) => setBreakTime(e.target.value)}
+            enterKeyHint="next"
+          />
+          <input
+            type="number"
+            min="15"
+            max="120"
+            placeholder="Duration (min)"
+            value={breakDuration}
+            onChange={(e) => setBreakDuration(parseInt(e.target.value) || 30)}
+            className="break-duration-input"
+            inputMode="numeric"
+            pattern="[0-9]*"
+          />
+          <button type="button" onClick={handleAddScheduledBreak} className="btn-add">Add Break</button>
         </div>
       </div>
 

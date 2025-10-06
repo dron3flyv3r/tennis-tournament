@@ -251,13 +251,30 @@ function assignCourtsAndTimes(matches: Match[], config: TournamentConfig) {
   let courtIndex = 0;
 
   matches.forEach(match => {
+    // Check if we need to skip a scheduled break before this match
+    const upcomingBreak = config.scheduledBreaks.find(b => {
+      const breakTime = parseTime(b.time);
+      const breakEnd = breakTime + b.duration;
+      // If current time falls within a break period, or we're about to start during one
+      return currentTime >= breakTime && currentTime < breakEnd;
+    });
+    
+    if (upcomingBreak) {
+      const breakTime = parseTime(upcomingBreak.time);
+      const breakEnd = breakTime + upcomingBreak.duration;
+      // Skip to the end of the break
+      currentTime = breakEnd;
+      courtIndex = 0; // Reset court index after break
+    }
+
     match.court = courts[courtIndex];
     match.time = formatTime(currentTime);
 
     courtIndex++;
     if (courtIndex >= courts.length) {
       courtIndex = 0;
-      currentTime += config.matchDuration;
+      // Move to next time slot (match duration + break duration)
+      currentTime += config.matchDuration + config.breakDuration;
     }
   });
 }
