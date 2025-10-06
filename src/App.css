@@ -96,3 +96,32 @@ code {
   background: #229954;
   transform: translateY(-2px);
 }
+
+@media (max-width: 768px) {
+  .app {
+    padding: 16px;
+  }
+
+  .load-prompt-modal {
+    padding: 30px 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app {
+    padding: 12px;
+  }
+
+  .load-prompt-modal {
+    padding: 24px 18px;
+  }
+
+  .load-prompt-actions {
+    flex-direction: column;
+  }
+
+  .btn-start-fresh,
+  .btn-load-saved {
+    width: 100%;
+  }
+}

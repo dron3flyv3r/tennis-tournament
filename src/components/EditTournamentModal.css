@@ -390,3 +390,77 @@
     font-size: 14px;
   }
 }
+
+@media (max-width: 600px) {
+  .modal-overlay {
+    padding: 12px;
+  }
+
+  .modal-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .modal-tabs {
+    overflow-x: auto;
+    padding: 0 12px;
+  }
+
+  .modal-body {
+    padding: 18px 16px;
+  }
+
+  .player-edit-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .player-edit-item .skill-level {
+    justify-content: space-between;
+  }
+
+  .add-player-section {
+    flex-direction: column;
+  }
+
+  .add-player-section .skill-input {
+    width: 100%;
+    max-width: 90px;
+  }
+
+  .match-edit-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .match-edit-details {
+    flex-wrap: wrap;
+  }
+
+  .match-teams-edit {
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .player-select-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-remove-player {
+    align-self: flex-end;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .btn-cancel-modal,
+  .btn-save-modal {
+    width: 100%;
+  }
+}
