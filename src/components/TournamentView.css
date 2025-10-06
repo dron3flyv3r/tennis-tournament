@@ -66,6 +66,9 @@
   font-weight: 500;
   transition: all 0.3s ease;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-back {
@@ -179,6 +182,9 @@
   font-weight: 500;
   transition: all 0.2s ease;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-expand {
@@ -232,10 +238,20 @@
   cursor: pointer;
   transition: all 0.2s ease;
   user-select: none;
+  width: 100%;
+  border: none;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  appearance: none;
 }
 
 .round-header:hover {
   background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+}
+
+.round-header:active {
+  background: linear-gradient(135deg, #dfe3e7 0%, #d0d6dc 100%);
 }
 
 .round-header-left {
@@ -464,5 +480,41 @@
 
   .round-matches {
     padding: 12px;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .round-header:hover {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  }
+
+  .round-header {
+    padding: 22px 28px;
+  }
+
+  .round-toggle {
+    font-size: 20px;
+  }
+
+  .round-title {
+    font-size: 21px;
+  }
+
+  .round-time,
+  .round-progress {
+    font-size: 16px;
+  }
+
+  .btn-back,
+  .btn-edit,
+  .btn-report,
+  .btn-expand,
+  .btn-collapse {
+    font-size: 15px;
+  }
+
+  .btn-expand,
+  .btn-collapse {
+    padding: 12px 18px;
   }
 }

@@ -123,6 +123,9 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, onUpdateMatch }) => {
                 max="7"
                 value={set.team1Games}
                 onChange={(e) => handleSetChange(idx, 'team1', parseInt(e.target.value) || 0)}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                aria-label={`Games won by ${team1Names} in set ${idx + 1}`}
               />
               <span>-</span>
               <input
@@ -131,23 +134,31 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, onUpdateMatch }) => {
                 max="7"
                 value={set.team2Games}
                 onChange={(e) => handleSetChange(idx, 'team2', parseInt(e.target.value) || 0)}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                aria-label={`Games won by ${team2Names} in set ${idx + 1}`}
               />
               {sets.length > 1 && (
-                <button onClick={() => handleRemoveSet(idx)} className="btn-remove-set">
+                <button
+                  type="button"
+                  onClick={() => handleRemoveSet(idx)}
+                  className="btn-remove-set"
+                  aria-label={`Remove set ${idx + 1}`}
+                >
                   ✕
                 </button>
               )}
             </div>
           ))}
           <div className="score-editor-actions">
-            <button onClick={handleAddSet} className="btn-add-set">
+            <button type="button" onClick={handleAddSet} className="btn-add-set">
               + Add Set
             </button>
             <div className="score-save-cancel">
-              <button onClick={handleSave} className="btn-save">
+              <button type="button" onClick={handleSave} className="btn-save">
                 Save Score
               </button>
-              <button onClick={handleCancel} className="btn-cancel">
+              <button type="button" onClick={handleCancel} className="btn-cancel">
                 Cancel
               </button>
             </div>
@@ -157,7 +168,7 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, onUpdateMatch }) => {
 
       {!isEditing && (
         <div className="match-actions">
-          <button onClick={handleStartEditing} className="btn-enter-score">
+          <button type="button" onClick={handleStartEditing} className="btn-enter-score">
             {match.completed ? 'Edit Score' : 'Enter Score'}
           </button>
         </div>

@@ -4,6 +4,10 @@
   box-sizing: border-box;
 }
 
+:root {
+  --touch-target-size: 44px;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -12,11 +16,22 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .app {
   min-height: 100vh;
   padding: 20px;
+}
+
+button {
+  touch-action: manipulation;
+}
+
+button:focus-visible,
+.round-header:focus-visible {
+  outline: 3px solid rgba(52, 152, 219, 0.6);
+  outline-offset: 2px;
 }
 
 code {
@@ -123,5 +138,23 @@ code {
   .btn-start-fresh,
   .btn-load-saved {
     width: 100%;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  button,
+  input,
+  select {
+    min-height: var(--touch-target-size);
+  }
+
+  input,
+  select {
+    font-size: 16px;
+  }
+
+  .btn-start-fresh,
+  .btn-load-saved {
+    font-size: 17px;
   }
 }

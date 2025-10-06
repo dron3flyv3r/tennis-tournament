@@ -162,6 +162,9 @@
   border-radius: 3px;
   cursor: pointer;
   font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-remove-set:hover {
@@ -330,5 +333,35 @@
   .btn-cancel,
   .btn-enter-score {
     width: 100%;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .match-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: none;
+  }
+
+  .set-input {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .set-input input {
+    width: 64px;
+    font-size: 18px;
+  }
+
+  .btn-add-set,
+  .btn-save,
+  .btn-cancel,
+  .btn-enter-score {
+    font-size: 16px;
+  }
+
+  .btn-remove-set {
+    min-width: var(--touch-target-size);
+    min-height: var(--touch-target-size);
+    font-size: 20px;
   }
 }
