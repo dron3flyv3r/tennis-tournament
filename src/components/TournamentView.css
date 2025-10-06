@@ -338,6 +338,39 @@
   gap: 20px;
 }
 
+.bench-section {
+  margin-top: 20px;
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  border-left: 4px solid #f39c12;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.bench-title {
+  margin: 0 0 10px 0;
+  color: #856404;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.bench-players {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bench-player {
+  padding: 6px 12px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #856404;
+  white-space: nowrap;
+}
+
 .no-matches {
   text-align: center;
   padding: 60px 20px;

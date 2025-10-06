@@ -193,6 +193,50 @@
   background: #c0392b;
 }
 
+.section-description {
+  color: #777;
+  font-size: 14px;
+  margin-top: -10px;
+  margin-bottom: 15px;
+}
+
+.breaks-list {
+  margin-bottom: 15px;
+}
+
+.break-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: #fff3cd;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  border-left: 3px solid #ffc107;
+}
+
+.break-item span {
+  flex: 1;
+  font-weight: 500;
+  color: #856404;
+}
+
+.add-break {
+  display: flex;
+  gap: 10px;
+}
+
+.add-break input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.break-duration-input {
+  width: 130px !important;
+  flex: 0 0 130px !important;
+}
+
 .start-button-container {
   text-align: center;
   margin-top: 30px;
@@ -258,6 +302,11 @@
     gap: 12px;
   }
 
+  .break-item {
+    flex-direction: row;
+    align-items: center;
+  }
+
   .player-item .skill-level {
     justify-content: space-between;
   }
@@ -270,6 +319,14 @@
   .add-court,
   .add-player {
     flex-direction: column;
+  }
+
+  .add-break {
+    flex-direction: column;
+  }
+
+  .break-duration-input {
+    width: 100% !important;
   }
 
   .btn-add,

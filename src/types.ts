@@ -29,6 +29,12 @@ export interface SetScore {
   };
 }
 
+export interface ScheduledBreak {
+  id: string;
+  time: string; // HH:MM format
+  duration: number; // in minutes
+}
+
 export interface TournamentConfig {
   tournamentName: string;
   gameType: 'singles' | 'doubles';
@@ -36,6 +42,8 @@ export interface TournamentConfig {
   courts: string[];
   startTime: string;
   matchDuration: number; // in minutes
+  breakDuration: number; // default break between matches in minutes
+  scheduledBreaks: ScheduledBreak[]; // optional scheduled breaks
   enforceNonRepeatingMatches: boolean;
   enforceFairMatches: boolean; // everyone plays same number of games
   allowBypass: boolean; // show popup if impossible to meet constraints
