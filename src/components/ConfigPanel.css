@@ -26,6 +26,9 @@
   font-weight: 600;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-sample-data:hover {
@@ -160,8 +163,12 @@
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-add:hover {
@@ -175,8 +182,11 @@
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-remove:hover {
@@ -199,6 +209,9 @@
   font-weight: 600;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-start:hover {
@@ -286,5 +299,38 @@
 
   .btn-start {
     font-size: 15px;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .config-panel {
+    padding-bottom: 32px;
+  }
+
+  .form-group input[type="text"],
+  .form-group input[type="time"],
+  .form-group input[type="number"],
+  .form-group select,
+  .add-court input,
+  .add-player input,
+  .skill-input {
+    font-size: 16px;
+  }
+
+  .btn-sample-data,
+  .btn-add,
+  .btn-remove,
+  .btn-start {
+    font-size: 16px;
+  }
+
+  .court-item,
+  .player-item {
+    padding: 12px;
+  }
+
+  .btn-add,
+  .btn-remove {
+    min-width: var(--touch-target-size);
   }
 }

@@ -123,7 +123,7 @@ const TournamentView: React.FC<TournamentViewProps> = ({
   return (
     <div className="tournament-view">
       <div className="tournament-header">
-        <button onClick={onBack} className="btn-back">
+        <button type="button" onClick={onBack} className="btn-back">
           ← Back to Setup
         </button>
         <div className="tournament-title">
@@ -136,14 +136,16 @@ const TournamentView: React.FC<TournamentViewProps> = ({
           </div>
         </div>
         <div className="header-actions">
-          <button 
-            onClick={handleEditTournament} 
+          <button
+            type="button"
+            onClick={handleEditTournament}
             className="btn-edit"
           >
             ✏️ Edit Tournament
           </button>
-          <button 
-            onClick={handleGenerateReport} 
+          <button
+            type="button"
+            onClick={handleGenerateReport}
             className="btn-report"
             disabled={completedMatches === 0}
           >
@@ -180,8 +182,8 @@ const TournamentView: React.FC<TournamentViewProps> = ({
         </div>
 
         <div className="round-controls">
-          <button onClick={expandAll} className="btn-expand">Expand All</button>
-          <button onClick={collapseAll} className="btn-collapse">Collapse All</button>
+          <button type="button" onClick={expandAll} className="btn-expand">Expand All</button>
+          <button type="button" onClick={collapseAll} className="btn-collapse">Collapse All</button>
         </div>
       </div>
 
@@ -195,13 +197,20 @@ const TournamentView: React.FC<TournamentViewProps> = ({
             const roundCompleted = round.matches.every(m => m.completed);
             const roundInProgress = round.matches.some(m => m.completed) && !roundCompleted;
             const isExpanded = expandedRounds.has(round.time);
+            const matchesId = `round-${roundIndex}-matches`;
 
             return (
-              <div 
-                key={round.time} 
+              <div
+                key={round.time}
                 className={`round-section ${roundCompleted ? 'completed' : ''} ${roundInProgress ? 'in-progress' : ''}`}
               >
-                <div className="round-header" onClick={() => toggleRound(round.time)}>
+                <button
+                  type="button"
+                  className="round-header"
+                  onClick={() => toggleRound(round.time)}
+                  aria-expanded={isExpanded}
+                  aria-controls={isExpanded ? matchesId : undefined}
+                >
                   <div className="round-header-left">
                     <span className="round-toggle">
                       {isExpanded ? '▼' : '▶'}
@@ -221,10 +230,10 @@ const TournamentView: React.FC<TournamentViewProps> = ({
                       <span className="round-badge pending-badge">Pending</span>
                     )}
                   </div>
-                </div>
+                </button>
 
                 {isExpanded && (
-                  <div className="round-matches">
+                  <div className="round-matches" id={matchesId}>
                     <div className="matches-grid">
                       {round.matches.map(match => (
                         <MatchCard

@@ -110,7 +110,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ onStartTournament }) => {
       <h1>🎾 Tennis Tournament Generator</h1>
 
       <div className="quick-start">
-        <button onClick={handleLoadSampleData} className="btn-sample-data">
+        <button type="button" onClick={handleLoadSampleData} className="btn-sample-data">
           🎯 Load Sample Data (Try it out!)
         </button>
       </div>
@@ -168,6 +168,9 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ onStartTournament }) => {
             max="180"
             value={config.matchDuration}
             onChange={(e) => setConfig({ ...config, matchDuration: parseInt(e.target.value) || 60 })}
+            inputMode="numeric"
+            pattern="[0-9]*"
+            enterKeyHint="next"
           />
         </div>
 
@@ -211,7 +214,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ onStartTournament }) => {
           {config.courts.map((court, idx) => (
             <div key={idx} className="court-item">
               <span>{court}</span>
-              <button onClick={() => handleRemoveCourt(idx)} className="btn-remove">
+              <button type="button" onClick={() => handleRemoveCourt(idx)} className="btn-remove">
                 Remove
               </button>
             </div>
@@ -223,9 +226,15 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ onStartTournament }) => {
             placeholder="Court name"
             value={courtInput}
             onChange={(e) => setCourtInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleAddCourt()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddCourt();
+              }
+            }}
+            enterKeyHint="done"
           />
-          <button onClick={handleAddCourt} className="btn-add">Add Court</button>
+          <button type="button" onClick={handleAddCourt} className="btn-add">Add Court</button>
         </div>
       </div>
 
@@ -249,9 +258,11 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ onStartTournament }) => {
                   value={player.skillLevel || 5}
                   onChange={(e) => handleUpdatePlayer(player.id, 'skillLevel', parseInt(e.target.value) || 5)}
                   className="skill-input"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                 />
               </div>
-              <button onClick={() => handleRemovePlayer(player.id)} className="btn-remove">
+              <button type="button" onClick={() => handleRemovePlayer(player.id)} className="btn-remove">
                 Remove
               </button>
             </div>
@@ -263,7 +274,13 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ onStartTournament }) => {
             placeholder="Player name"
             value={newPlayerName}
             onChange={(e) => setNewPlayerName(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleAddPlayer()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddPlayer();
+              }
+            }}
+            enterKeyHint="next"
           />
           <input
             type="number"
@@ -273,13 +290,15 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ onStartTournament }) => {
             value={newPlayerSkill}
             onChange={(e) => setNewPlayerSkill(parseInt(e.target.value) || 5)}
             className="skill-input"
+            inputMode="numeric"
+            pattern="[0-9]*"
           />
-          <button onClick={handleAddPlayer} className="btn-add">Add Player</button>
+          <button type="button" onClick={handleAddPlayer} className="btn-add">Add Player</button>
         </div>
       </div>
 
       <div className="start-button-container">
-        <button onClick={handleStartTournament} className="btn-start">
+        <button type="button" onClick={handleStartTournament} className="btn-start">
           Generate Tournament
         </button>
       </div>
