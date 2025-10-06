@@ -247,3 +247,35 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 600px) {
+  .tournament-report {
+    padding: 16px 12px 24px;
+  }
+
+  .report-section {
+    padding: 18px;
+  }
+
+  .summary-value {
+    font-size: 22px;
+  }
+
+  .fun-stat-card {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 420px) {
+  .report-section {
+    padding: 16px;
+  }
+
+  .report-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-value {
+    font-size: 20px;
+  }
+}

@@ -244,3 +244,91 @@
 .btn-enter-score:hover {
   background: #2980b9;
 }
+
+@media (max-width: 640px) {
+  .match-card {
+    padding: 16px;
+  }
+
+  .match-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .match-time-court {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .match-time,
+  .match-court {
+    font-size: 11px;
+  }
+
+  .match-winner {
+    align-self: flex-start;
+  }
+
+  .team {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .team-sets {
+    font-size: 20px;
+    align-self: flex-end;
+  }
+
+  .score-editor-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .score-save-cancel {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .btn-save,
+  .btn-cancel {
+    flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .match-card {
+    padding: 14px;
+  }
+
+  .team-sets {
+    font-size: 18px;
+  }
+
+  .set-input {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .set-label {
+    min-width: 40px;
+  }
+
+  .set-input input {
+    width: 48px;
+    font-size: 14px;
+  }
+
+  .score-save-cancel {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .btn-save,
+  .btn-cancel,
+  .btn-enter-score {
+    width: 100%;
+  }
+}

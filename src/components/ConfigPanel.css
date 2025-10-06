@@ -210,3 +210,81 @@
 .btn-start:active {
   transform: translateY(0);
 }
+
+@media (max-width: 900px) {
+  .config-panel {
+    padding: 16px;
+  }
+
+  .config-section {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 600px) {
+  .config-panel {
+    padding: 14px 12px 24px;
+  }
+
+  .config-panel h1 {
+    font-size: 26px;
+  }
+
+  .config-section {
+    padding: 16px;
+  }
+
+  .btn-sample-data {
+    width: 100%;
+  }
+
+  .court-item,
+  .player-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .player-item .skill-level {
+    justify-content: space-between;
+  }
+
+  .skill-input {
+    width: 100% !important;
+    max-width: 90px;
+  }
+
+  .add-court,
+  .add-player {
+    flex-direction: column;
+  }
+
+  .btn-add,
+  .btn-remove {
+    width: 100%;
+  }
+
+  .start-button-container {
+    margin-top: 24px;
+  }
+
+  .btn-start {
+    width: 100%;
+    padding: 14px 18px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  .config-panel h1 {
+    font-size: 24px;
+  }
+
+  .form-group label {
+    font-size: 14px;
+  }
+
+  .btn-start {
+    font-size: 15px;
+  }
+}
