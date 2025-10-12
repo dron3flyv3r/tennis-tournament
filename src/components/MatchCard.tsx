@@ -1,21 +1,39 @@
 import React, { useState } from 'react';
-import type { Match, SetScore } from '../types';
+import type { Match, TournamentConfig, SetScore } from '../types';
 import './MatchCard.css';
 
 interface MatchCardProps {
   match: Match;
+  config: TournamentConfig;
   onUpdateMatch: (matchId: string, match: Match) => void;
 }
 
-const MatchCard: React.FC<MatchCardProps> = ({ match, onUpdateMatch }) => {
+const MatchCard: React.FC<MatchCardProps> = ({ match, config, onUpdateMatch }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [sets, setSets] = useState<SetScore[]>([
-    { team1Games: 0, team2Games: 0 },
-  ]);
+  
+  // For sets mode
+  const [sets, setSets] = useState<SetScore[]>([{ team1Games: 0, team2Games: 0 }]);
+  
+  // For simple mode - use strings to allow empty values
+  const [simpleScore1, setSimpleScore1] = useState('');
+  const [simpleScore2, setSimpleScore2] = useState('');
 
   const handleStartEditing = () => {
     if (match.score) {
-      setSets(match.score.sets);
+      if (config.scoringMode === 'sets' && match.score.sets) {
+        setSets(match.score.sets);
+      } else {
+        setSimpleScore1(match.score.team1Score.toString());
+        setSimpleScore2(match.score.team2Score.toString());
+      }
+    } else {
+      // Reset to defaults
+      if (config.scoringMode === 'sets') {
+        setSets([{ team1Games: 0, team2Games: 0 }]);
+      } else {
+        setSimpleScore1('');
+        setSimpleScore2('');
+      }
     }
     setIsEditing(true);
   };
@@ -25,37 +43,63 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, onUpdateMatch }) => {
   };
 
   const handleRemoveSet = (index: number) => {
-    setSets(sets.filter((_, i) => i !== index));
+    if (sets.length > 1) {
+      setSets(sets.filter((_, i) => i !== index));
+    }
   };
 
-  const handleSetChange = (index: number, team: 'team1' | 'team2', value: number) => {
+  const handleSetGameChange = (setIndex: number, team: 'team1' | 'team2', value: string) => {
     const newSets = [...sets];
+    const numValue = value === '' ? 0 : Math.max(0, parseInt(value) || 0);
+    
     if (team === 'team1') {
-      newSets[index].team1Games = value;
+      newSets[setIndex].team1Games = numValue;
     } else {
-      newSets[index].team2Games = value;
+      newSets[setIndex].team2Games = numValue;
     }
     setSets(newSets);
   };
 
   const handleSave = () => {
-    if (sets.length === 0) {
-      alert('Please add at least one set.');
-      return;
+    let updatedMatch: Match;
+
+    if (config.scoringMode === 'sets') {
+      if (sets.length === 0) {
+        alert('Please add at least one set.');
+        return;
+      }
+
+      const team1SetsWon = sets.filter(s => s.team1Games > s.team2Games).length;
+      const team2SetsWon = sets.filter(s => s.team2Games > s.team1Games).length;
+
+      updatedMatch = {
+        ...match,
+        score: {
+          team1Score: team1SetsWon,
+          team2Score: team2SetsWon,
+          sets,
+        },
+        completed: true,
+      };
+    } else {
+      // Simple mode
+      const score1 = parseInt(simpleScore1) || 0;
+      const score2 = parseInt(simpleScore2) || 0;
+
+      if (score1 === 0 && score2 === 0) {
+        alert('Please enter a valid score.');
+        return;
+      }
+
+      updatedMatch = {
+        ...match,
+        score: {
+          team1Score: score1,
+          team2Score: score2,
+        },
+        completed: true,
+      };
     }
-
-    const team1Sets = sets.filter(s => s.team1Games > s.team2Games).length;
-    const team2Sets = sets.filter(s => s.team2Games > s.team1Games).length;
-
-    const updatedMatch: Match = {
-      ...match,
-      score: {
-        team1Sets,
-        team2Sets,
-        sets,
-      },
-      completed: true,
-    };
 
     onUpdateMatch(match.id, updatedMatch);
     setIsEditing(false);
@@ -63,10 +107,15 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, onUpdateMatch }) => {
 
   const handleCancel = () => {
     setIsEditing(false);
-    if (match.score) {
-      setSets(match.score.sets);
-    } else {
-      setSets([{ team1Games: 0, team2Games: 0 }]);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSave();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleCancel();
     }
   };
 
@@ -82,29 +131,29 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, onUpdateMatch }) => {
         </div>
         {match.completed && match.score && (
           <div className="match-winner">
-            {match.score.team1Sets > match.score.team2Sets ? '👑 ' + team1Names : '👑 ' + team2Names}
+            {match.score.team1Score > match.score.team2Score ? '👑 ' + team1Names : '👑 ' + team2Names}
           </div>
         )}
       </div>
 
       <div className="match-teams">
-        <div className={`team ${match.completed && match.score && match.score.team1Sets > match.score.team2Sets ? 'winner' : ''}`}>
+        <div className={`team ${match.completed && match.score && match.score.team1Score > match.score.team2Score ? 'winner' : ''}`}>
           <span className="team-name">{team1Names}</span>
-          {match.score && <span className="team-sets">{match.score.team1Sets}</span>}
+          {match.score && <span className="team-sets">{match.score.team1Score}</span>}
         </div>
         <div className="vs">VS</div>
-        <div className={`team ${match.completed && match.score && match.score.team2Sets > match.score.team1Sets ? 'winner' : ''}`}>
+        <div className={`team ${match.completed && match.score && match.score.team2Score > match.score.team1Score ? 'winner' : ''}`}>
           <span className="team-name">{team2Names}</span>
-          {match.score && <span className="team-sets">{match.score.team2Sets}</span>}
+          {match.score && <span className="team-sets">{match.score.team2Score}</span>}
         </div>
       </div>
 
-      {match.score && !isEditing && (
+      {match.score && !isEditing && config.scoringMode === 'sets' && match.score.sets && (
         <div className="match-score-details">
           <div className="sets-display">
             {match.score.sets.map((set, idx) => (
               <div key={idx} className="set-score">
-                Set {idx + 1}: {set.team1Games} - {set.team2Games}
+                Set {idx + 1}: {set.team1Games}-{set.team2Games}
               </div>
             ))}
           </div>
@@ -112,57 +161,104 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, onUpdateMatch }) => {
       )}
 
       {isEditing && (
-        <div className="match-score-editor">
+        <div className="match-score-editor" onKeyDown={handleKeyDown}>
           <h4>Enter Score</h4>
-          {sets.map((set, idx) => (
-            <div key={idx} className="set-input">
-              <span className="set-label">Set {idx + 1}:</span>
-              <input
-                type="number"
-                min="0"
-                max="7"
-                value={set.team1Games}
-                onChange={(e) => handleSetChange(idx, 'team1', parseInt(e.target.value) || 0)}
-                inputMode="numeric"
-                pattern="[0-9]*"
-                aria-label={`Games won by ${team1Names} in set ${idx + 1}`}
-              />
-              <span>-</span>
-              <input
-                type="number"
-                min="0"
-                max="7"
-                value={set.team2Games}
-                onChange={(e) => handleSetChange(idx, 'team2', parseInt(e.target.value) || 0)}
-                inputMode="numeric"
-                pattern="[0-9]*"
-                aria-label={`Games won by ${team2Names} in set ${idx + 1}`}
-              />
-              {sets.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => handleRemoveSet(idx)}
-                  className="btn-remove-set"
-                  aria-label={`Remove set ${idx + 1}`}
-                >
-                  ✕
+          
+          {config.scoringMode === 'sets' ? (
+            <>
+              {sets.map((set, idx) => (
+                <div key={idx} className="set-input">
+                  <span className="set-label">Set {idx + 1}:</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="7"
+                    value={set.team1Games || ''}
+                    onChange={(e) => handleSetGameChange(idx, 'team1', e.target.value)}
+                    placeholder="0"
+                    inputMode="numeric"
+                    aria-label={`${team1Names} games in set ${idx + 1}`}
+                  />
+                  <span>-</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="7"
+                    value={set.team2Games || ''}
+                    onChange={(e) => handleSetGameChange(idx, 'team2', e.target.value)}
+                    placeholder="0"
+                    inputMode="numeric"
+                    aria-label={`${team2Names} games in set ${idx + 1}`}
+                  />
+                  {sets.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSet(idx)}
+                      className="btn-remove-set"
+                      aria-label={`Remove set ${idx + 1}`}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ))}
+              <div className="score-editor-actions">
+                <button type="button" onClick={handleAddSet} className="btn-add-set">
+                  + Add Set
                 </button>
-              )}
-            </div>
-          ))}
-          <div className="score-editor-actions">
-            <button type="button" onClick={handleAddSet} className="btn-add-set">
-              + Add Set
-            </button>
-            <div className="score-save-cancel">
-              <button type="button" onClick={handleSave} className="btn-save">
-                Save Score
-              </button>
-              <button type="button" onClick={handleCancel} className="btn-cancel">
-                Cancel
-              </button>
-            </div>
-          </div>
+                <div className="score-save-cancel">
+                  <button type="button" onClick={handleSave} className="btn-save">
+                    Save Score
+                  </button>
+                  <button type="button" onClick={handleCancel} className="btn-cancel">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+              <p className="keyboard-hint">💡 Tip: Press Enter to save, ESC to cancel</p>
+            </>
+          ) : (
+            <>
+              <div className="simple-score-input">
+                <div className="team-score-row">
+                  <span className="team-label">{team1Names}:</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={simpleScore1}
+                    onChange={(e) => setSimpleScore1(e.target.value)}
+                    placeholder="0"
+                    inputMode="numeric"
+                    aria-label={`Score for ${team1Names}`}
+                    autoFocus
+                  />
+                </div>
+                <div className="team-score-row">
+                  <span className="team-label">{team2Names}:</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={simpleScore2}
+                    onChange={(e) => setSimpleScore2(e.target.value)}
+                    placeholder="0"
+                    inputMode="numeric"
+                    aria-label={`Score for ${team2Names}`}
+                  />
+                </div>
+              </div>
+              <div className="score-editor-actions">
+                <div className="score-save-cancel">
+                  <button type="button" onClick={handleSave} className="btn-save">
+                    Save Score
+                  </button>
+                  <button type="button" onClick={handleCancel} className="btn-cancel">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+              <p className="keyboard-hint">💡 Tip: Press Enter to save, ESC to cancel</p>
+            </>
+          )}
         </div>
       )}
 

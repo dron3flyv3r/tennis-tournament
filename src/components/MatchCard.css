@@ -365,3 +365,50 @@
     font-size: 20px;
   }
 }
+
+/* Simple score input styles */
+.simple-score-input {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.team-score-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.team-label {
+  flex: 1;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 14px;
+}
+
+.team-score-row input {
+  width: 80px;
+  padding: 10px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.team-score-row input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* Keyboard hint */
+.keyboard-hint {
+  font-size: 12px;
+  color: #95a5a6;
+  text-align: center;
+  margin-top: 10px;
+  font-style: italic;
+}

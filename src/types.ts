@@ -15,9 +15,9 @@ export interface Match {
 }
 
 export interface MatchScore {
-  team1Sets: number;
-  team2Sets: number;
-  sets: SetScore[];
+  team1Score: number; // For simple mode, this is the final score. For sets mode, this is sets won
+  team2Score: number; // For simple mode, this is the final score. For sets mode, this is sets won
+  sets?: SetScore[]; // Optional - only used in 'sets' scoring mode
 }
 
 export interface SetScore {
@@ -39,6 +39,7 @@ export interface TournamentConfig {
   tournamentName: string;
   gameType: 'singles' | 'doubles';
   doublesPartnerMode: 'fixed' | 'random-non-repeating';
+  scoringMode: 'sets' | 'simple'; // Sets-based scoring or simple single score
   courts: string[];
   startTime: string;
   matchDuration: number; // in minutes

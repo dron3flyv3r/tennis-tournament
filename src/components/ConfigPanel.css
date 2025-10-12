@@ -84,6 +84,13 @@
   box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
 }
 
+.field-description {
+  font-size: 12px;
+  color: #888;
+  margin: 5px 0 0 0;
+  font-style: italic;
+}
+
 .checkbox-group label {
   display: flex;
   align-items: center;
@@ -198,6 +205,67 @@
   font-size: 14px;
   margin-top: -10px;
   margin-bottom: 15px;
+}
+
+.doubles-info {
+  margin-bottom: 15px;
+}
+
+.doubles-pair-container {
+  background: #e8f4f8;
+  border: 2px solid #3498db;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.pair-label {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 8px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.pair-label::before {
+  content: "👥";
+  margin-right: 6px;
+}
+
+.pair-players {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.player-item-in-pair {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #d0e8f2;
+}
+
+.player-item-in-pair .player-name-input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.player-item-in-pair .skill-level {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.player-item-in-pair .skill-level label {
+  margin: 0;
+  font-size: 12px;
+  color: #666;
 }
 
 .breaks-list {

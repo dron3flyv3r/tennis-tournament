@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import ConfigPanel from './components/ConfigPanel';
 import TournamentView from './components/TournamentView';
+import { ToastProvider, useToast } from './components/ToastContext';
 import type { Player, TournamentConfig, Match } from './types';
 import { generateMatches } from './tournamentUtils';
 import { saveTournamentState, loadTournamentState, clearTournamentState, hasSavedTournamentState } from './cookieUtils';
 import './App.css';
 
-function App() {
+function AppContent() {
+  const { showToast } = useToast();
   const [tournamentStarted, setTournamentStarted] = useState(false);
   const [matches, setMatches] = useState<Match[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
@@ -31,8 +33,10 @@ function App() {
         warnings,
         tournamentStarted,
       });
+      // Show subtle save indicator
+      showToast('Tournament saved', 'success', 1500);
     }
-  }, [tournamentStarted, config, players, matches, warnings]);
+  }, [tournamentStarted, config, players, matches, warnings, showToast]);
 
   const handleLoadSavedTournament = () => {
     const savedState = loadTournamentState();
@@ -138,6 +142,14 @@ function App() {
         />
       )}
     </div>
+  );
+}
+
+function App() {
+  return (
+    <ToastProvider>
+      <AppContent />
+    </ToastProvider>
   );
 }
 

@@ -11,6 +11,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ onStartTournament }) => {
     tournamentName: 'Tennis Tournament',
     gameType: 'singles',
     doublesPartnerMode: 'fixed',
+    scoringMode: 'sets',
     courts: ['Court 1', 'Court 2'],
     startTime: '09:00',
     matchDuration: 60,
@@ -34,6 +35,16 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ onStartTournament }) => {
 
   const handleAddPlayer = () => {
     if (newPlayerName.trim()) {
+      // Check for duplicate names
+      const duplicateName = players.find(
+        p => p.name.toLowerCase() === newPlayerName.trim().toLowerCase()
+      );
+      
+      if (duplicateName) {
+        alert(`⚠️ A player named "${newPlayerName.trim()}" already exists!\n\nPlease use a different name to avoid confusion.`);
+        return;
+      }
+
       const newPlayer: Player = {
         id: Date.now().toString(),
         name: newPlayerName.trim(),
@@ -50,6 +61,21 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ onStartTournament }) => {
   };
 
   const handleUpdatePlayer = (id: string, field: keyof Player, value: string | number) => {
+    // If updating name, check for duplicates
+    if (field === 'name' && typeof value === 'string') {
+      const trimmedName = value.trim();
+      if (trimmedName) {
+        const duplicateName = players.find(
+          p => p.id !== id && p.name.toLowerCase() === trimmedName.toLowerCase()
+        );
+        
+        if (duplicateName) {
+          alert(`⚠️ A player named "${trimmedName}" already exists!\n\nPlease use a different name to avoid confusion.`);
+          return;
+        }
+      }
+    }
+
     setPlayers(players.map(p => 
       p.id === id ? { ...p, [field]: value } : p
     ));
@@ -175,6 +201,22 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ onStartTournament }) => {
             </select>
           </div>
         )}
+
+        <div className="form-group">
+          <label>Scoring Mode:</label>
+          <select
+            value={config.scoringMode}
+            onChange={(e) => setConfig({ ...config, scoringMode: e.target.value as 'sets' | 'simple' })}
+          >
+            <option value="sets">Sets-Based (Traditional Tennis)</option>
+            <option value="simple">Simple Score (Single Number)</option>
+          </select>
+          <p className="field-description">
+            {config.scoringMode === 'sets' 
+              ? 'Track games and sets (e.g., 6-4, 6-3)' 
+              : 'Track just the final score (e.g., 15-12)'}
+          </p>
+        </div>
 
         <div className="form-group">
           <label>Start Time:</label>
@@ -314,33 +356,111 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ onStartTournament }) => {
 
       <div className="config-section">
         <h2>Players</h2>
+        {config.gameType === 'doubles' && config.doublesPartnerMode === 'fixed' && (
+          <div className="doubles-info">
+            <p className="section-description">
+              ℹ️ Players are paired sequentially (1-2, 3-4, etc.) for fixed doubles teams.
+            </p>
+          </div>
+        )}
         <div className="players-list">
-          {players.map((player) => (
-            <div key={player.id} className="player-item">
-              <input
-                type="text"
-                value={player.name}
-                onChange={(e) => handleUpdatePlayer(player.id, 'name', e.target.value)}
-                className="player-name-input"
-              />
-              <div className="skill-level">
-                <label>Skill:</label>
+          {config.gameType === 'doubles' && config.doublesPartnerMode === 'fixed' ? (
+            // Show players in pairs for fixed doubles
+            <>
+              {Array.from({ length: Math.ceil(players.length / 2) }, (_, pairIndex) => {
+                const player1 = players[pairIndex * 2];
+                const player2 = players[pairIndex * 2 + 1];
+                
+                return (
+                  <div key={`pair-${pairIndex}`} className="doubles-pair-container">
+                    <div className="pair-label">Team {pairIndex + 1}</div>
+                    <div className="pair-players">
+                      <div className="player-item-in-pair">
+                        <input
+                          type="text"
+                          value={player1.name}
+                          onChange={(e) => handleUpdatePlayer(player1.id, 'name', e.target.value)}
+                          className="player-name-input"
+                          placeholder="Player 1"
+                        />
+                        <div className="skill-level">
+                          <label>Skill:</label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={player1.skillLevel || 5}
+                            onChange={(e) => handleUpdatePlayer(player1.id, 'skillLevel', parseInt(e.target.value) || 5)}
+                            className="skill-input"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                          />
+                        </div>
+                        <button type="button" onClick={() => handleRemovePlayer(player1.id)} className="btn-remove">
+                          Remove
+                        </button>
+                      </div>
+                      {player2 && (
+                        <div className="player-item-in-pair">
+                          <input
+                            type="text"
+                            value={player2.name}
+                            onChange={(e) => handleUpdatePlayer(player2.id, 'name', e.target.value)}
+                            className="player-name-input"
+                            placeholder="Player 2"
+                          />
+                          <div className="skill-level">
+                            <label>Skill:</label>
+                            <input
+                              type="number"
+                              min="1"
+                              max="10"
+                              value={player2.skillLevel || 5}
+                              onChange={(e) => handleUpdatePlayer(player2.id, 'skillLevel', parseInt(e.target.value) || 5)}
+                              className="skill-input"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                            />
+                          </div>
+                          <button type="button" onClick={() => handleRemovePlayer(player2.id)} className="btn-remove">
+                            Remove
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </>
+          ) : (
+            // Show players normally for singles or random doubles
+            players.map((player) => (
+              <div key={player.id} className="player-item">
                 <input
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={player.skillLevel || 5}
-                  onChange={(e) => handleUpdatePlayer(player.id, 'skillLevel', parseInt(e.target.value) || 5)}
-                  className="skill-input"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
+                  type="text"
+                  value={player.name}
+                  onChange={(e) => handleUpdatePlayer(player.id, 'name', e.target.value)}
+                  className="player-name-input"
                 />
+                <div className="skill-level">
+                  <label>Skill:</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={player.skillLevel || 5}
+                    onChange={(e) => handleUpdatePlayer(player.id, 'skillLevel', parseInt(e.target.value) || 5)}
+                    className="skill-input"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                  />
+                </div>
+                <button type="button" onClick={() => handleRemovePlayer(player.id)} className="btn-remove">
+                  Remove
+                </button>
               </div>
-              <button type="button" onClick={() => handleRemovePlayer(player.id)} className="btn-remove">
-                Remove
-              </button>
-            </div>
-          ))}
+            ))
+          )}
         </div>
         <div className="add-player">
           <input

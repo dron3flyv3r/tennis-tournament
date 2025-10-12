@@ -246,37 +246,96 @@ function createDoublesMatch(
 }
 
 function assignCourtsAndTimes(matches: Match[], config: TournamentConfig) {
-  const courts = config.courts;
-  let currentTime = parseTime(config.startTime);
-  let courtIndex = 0;
+  if (!matches.length) {
+    return;
+  }
 
-  matches.forEach(match => {
-    // Check if we need to skip a scheduled break before this match
-    const upcomingBreak = config.scheduledBreaks.find(b => {
-      const breakTime = parseTime(b.time);
-      const breakEnd = breakTime + b.duration;
-      // If current time falls within a break period, or we're about to start during one
-      return currentTime >= breakTime && currentTime < breakEnd;
+  const courts = config.courts.filter(court => court.trim().length > 0);
+  const matchDuration = Math.max(1, config.matchDuration);
+  const slotGap = Math.max(0, config.breakDuration);
+  const startTime = parseTime(config.startTime);
+
+  if (!courts.length) {
+    // No courts configured; assign sequential times so downstream UI stays usable.
+    matches.forEach((match, index) => {
+      match.court = '';
+      match.time = formatTime(startTime + index * (matchDuration + slotGap));
     });
-    
-    if (upcomingBreak) {
-      const breakTime = parseTime(upcomingBreak.time);
-      const breakEnd = breakTime + upcomingBreak.duration;
-      // Skip to the end of the break
-      currentTime = breakEnd;
-      courtIndex = 0; // Reset court index after break
+    return;
+  }
+
+  const remainingMatches = [...matches];
+  const playerNextAvailable = new Map<string, number>();
+  const scheduledBreaks = [...config.scheduledBreaks]
+    .map(b => ({
+      start: parseTime(b.time),
+      end: parseTime(b.time) + Math.max(0, b.duration),
+    }))
+    .filter(b => b.end > b.start)
+    .sort((a, b) => a.start - b.start);
+
+  const skipBreaks = (time: number): number => {
+    let adjustedTime = time;
+    while (true) {
+      const activeBreak = scheduledBreaks.find(b => adjustedTime >= b.start && adjustedTime < b.end);
+      if (!activeBreak) {
+        return adjustedTime;
+      }
+      adjustedTime = activeBreak.end;
+    }
+  };
+
+  let currentTime = skipBreaks(startTime);
+
+  while (remainingMatches.length > 0) {
+    const slotPlayers = new Set<string>();
+    let courtsUsed = 0;
+    let assignedThisSlot = false;
+
+    for (let idx = 0; idx < remainingMatches.length && courtsUsed < courts.length; ) {
+      const match = remainingMatches[idx];
+      const matchPlayerIds = [
+        ...match.team1.map(p => p.id),
+        ...match.team2.map(p => p.id),
+      ];
+
+      const conflict = matchPlayerIds.some(playerId => {
+        const nextAvailable = playerNextAvailable.get(playerId) ?? startTime;
+        return nextAvailable > currentTime || slotPlayers.has(playerId);
+      });
+
+      if (conflict) {
+        idx++;
+        continue;
+      }
+
+      match.court = courts[courtsUsed];
+      match.time = formatTime(currentTime);
+      matchPlayerIds.forEach(playerId => {
+        slotPlayers.add(playerId);
+        playerNextAvailable.set(playerId, currentTime + matchDuration + slotGap);
+      });
+
+      remainingMatches.splice(idx, 1);
+      courtsUsed++;
+      assignedThisSlot = true;
     }
 
-    match.court = courts[courtIndex];
-    match.time = formatTime(currentTime);
+    const nextTimeCandidates: number[] = [];
 
-    courtIndex++;
-    if (courtIndex >= courts.length) {
-      courtIndex = 0;
-      // Move to next time slot (match duration + break duration)
-      currentTime += config.matchDuration + config.breakDuration;
+    if (assignedThisSlot) {
+      nextTimeCandidates.push(currentTime + matchDuration + slotGap);
+    } else {
+      // No matches could be scheduled because everyone in the queue is still busy.
+      const availabilityTimes = [...playerNextAvailable.values()].filter(t => t > currentTime);
+      if (availabilityTimes.length) {
+        nextTimeCandidates.push(Math.min(...availabilityTimes));
+      }
+      nextTimeCandidates.push(currentTime + matchDuration + slotGap);
     }
-  });
+
+    currentTime = skipBreaks(Math.min(...nextTimeCandidates));
+  }
 }
 
 function parseTime(timeStr: string): number {
@@ -314,7 +373,7 @@ export function calculatePlayerStats(matches: Match[], players: Player[]): Playe
   // Calculate stats from completed matches
   matches.filter(m => m.completed && m.score).forEach(match => {
     const score = match.score!;
-    const team1Won = score.team1Sets > score.team2Sets;
+    const team1Won = score.team1Score > score.team2Score;
 
     // Update stats for team 1
     match.team1.forEach(player => {
@@ -325,13 +384,15 @@ export function calculatePlayerStats(matches: Match[], players: Player[]): Playe
       } else {
         stats.matchesLost++;
       }
-      stats.setsWon += score.team1Sets;
-      stats.setsLost += score.team2Sets;
+      stats.setsWon += score.team1Score;
+      stats.setsLost += score.team2Score;
 
-      score.sets.forEach(set => {
-        stats.gamesWon += set.team1Games;
-        stats.gamesLost += set.team2Games;
-      });
+      if (score.sets) {
+        score.sets.forEach(set => {
+          stats.gamesWon += set.team1Games;
+          stats.gamesLost += set.team2Games;
+        });
+      }
     });
 
     // Update stats for team 2
@@ -343,13 +404,15 @@ export function calculatePlayerStats(matches: Match[], players: Player[]): Playe
       } else {
         stats.matchesLost++;
       }
-      stats.setsWon += score.team2Sets;
-      stats.setsLost += score.team1Sets;
+      stats.setsWon += score.team2Score;
+      stats.setsLost += score.team1Score;
 
-      score.sets.forEach(set => {
-        stats.gamesWon += set.team2Games;
-        stats.gamesLost += set.team1Games;
-      });
+      if (score.sets) {
+        score.sets.forEach(set => {
+          stats.gamesWon += set.team2Games;
+          stats.gamesLost += set.team1Games;
+        });
+      }
     });
   });
 
@@ -393,19 +456,19 @@ export function generateReport(
     .filter(m => m.score)
     .reduce((biggest, match) => {
       const score = match.score!;
-      const setDiff = Math.abs(score.team1Sets - score.team2Sets);
-      const gameDiff = score.sets.reduce((sum, set) => 
+      const scoreDiff = Math.abs(score.team1Score - score.team2Score);
+      const gameDiff = score.sets ? score.sets.reduce((sum, set) => 
         sum + Math.abs(set.team1Games - set.team2Games), 0
-      );
+      ) : 0;
       
-      if (!biggest || setDiff > 0) {
+      if (!biggest || scoreDiff > 0) {
         const biggestScore = biggest?.score;
-        const biggestSetDiff = biggestScore ? Math.abs(biggestScore.team1Sets - biggestScore.team2Sets) : 0;
-        const biggestGameDiff = biggestScore?.sets.reduce((sum, set) => 
+        const biggestScoreDiff = biggestScore ? Math.abs(biggestScore.team1Score - biggestScore.team2Score) : 0;
+        const biggestGameDiff = biggestScore?.sets ? biggestScore.sets.reduce((sum, set) => 
           sum + Math.abs(set.team1Games - set.team2Games), 0
-        ) || 0;
+        ) : 0;
 
-        if (setDiff > biggestSetDiff || (setDiff === biggestSetDiff && gameDiff > biggestGameDiff)) {
+        if (scoreDiff > biggestScoreDiff || (scoreDiff === biggestScoreDiff && gameDiff > biggestGameDiff)) {
           return match;
         }
       }

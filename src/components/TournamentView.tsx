@@ -250,6 +250,7 @@ const TournamentView: React.FC<TournamentViewProps> = ({
                         <MatchCard
                           key={match.id}
                           match={match}
+                          config={config}
                           onUpdateMatch={onUpdateMatch}
                         />
                       ))}

@@ -118,7 +118,7 @@ const TournamentReport: React.FC<TournamentReportProps> = ({ report, onBack }) =
                 {report.funStats.biggestWin.team2.map(p => p.name).join(' & ')}
               </div>
               <div className="fun-stat-detail">
-                Score: {report.funStats.biggestWin.score?.team1Sets} - {report.funStats.biggestWin.score?.team2Sets}
+                Score: {report.funStats.biggestWin.score?.team1Score} - {report.funStats.biggestWin.score?.team2Score}
               </div>
             </div>
           )}
