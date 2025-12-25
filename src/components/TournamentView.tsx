@@ -11,7 +11,8 @@ interface TournamentViewProps {
   players: Player[];
   config: TournamentConfig;
   warnings: string[];
-  onBack: () => void;
+  onEditSetup: () => void;
+  onStartFresh: () => void;
   onUpdateMatch: (matchId: string, match: Match) => void;
   onUpdateTournament: (players: Player[], matches: Match[]) => void;
 }
@@ -26,7 +27,8 @@ const TournamentView: React.FC<TournamentViewProps> = ({
   players,
   config,
   warnings,
-  onBack,
+  onEditSetup,
+  onStartFresh,
   onUpdateMatch,
   onUpdateTournament,
 }) => {
@@ -34,6 +36,7 @@ const TournamentView: React.FC<TournamentViewProps> = ({
   const [showEditModal, setShowEditModal] = useState(false);
   const [filterCourt, setFilterCourt] = useState<string>('all');
   const [expandedRounds, setExpandedRounds] = useState<Set<string>>(new Set());
+  const [showSetupOptions, setShowSetupOptions] = useState(false);
 
   const completedMatches = matches.filter(m => m.completed).length;
   const totalMatches = matches.length;
@@ -134,8 +137,8 @@ const TournamentView: React.FC<TournamentViewProps> = ({
   return (
     <div className="tournament-view">
       <div className="tournament-header">
-        <button type="button" onClick={onBack} className="btn-back">
-          ← Back to Setup
+        <button type="button" onClick={() => setShowSetupOptions(true)} className="btn-back">
+          ← Setup
         </button>
         <div className="tournament-title">
           <h1>{config.tournamentName}</h1>
@@ -147,11 +150,7 @@ const TournamentView: React.FC<TournamentViewProps> = ({
           </div>
         </div>
         <div className="header-actions">
-          <button
-            type="button"
-            onClick={handleEditTournament}
-            className="btn-edit"
-          >
+          <button type="button" onClick={handleEditTournament} className="btn-edit">
             ✏️ Edit Tournament
           </button>
           <button
@@ -283,6 +282,40 @@ const TournamentView: React.FC<TournamentViewProps> = ({
           onClose={() => setShowEditModal(false)}
           onSave={handleSaveEdit}
         />
+      )}
+
+      {showSetupOptions && (
+        <div className="setup-overlay">
+          <div className="setup-modal">
+            <h3>Return to setup</h3>
+            <p>Would you like to adjust the current setup or start fresh?</p>
+            <div className="setup-actions">
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => {
+                  setShowSetupOptions(false);
+                  onEditSetup();
+                }}
+              >
+                Edit current setup
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => {
+                  setShowSetupOptions(false);
+                  onStartFresh();
+                }}
+              >
+                Start fresh
+              </button>
+              <button type="button" className="btn-tertiary" onClick={() => setShowSetupOptions(false)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

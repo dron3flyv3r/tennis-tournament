@@ -1,29 +1,67 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import ConfigPanel from './components/ConfigPanel';
 import TournamentView from './components/TournamentView';
 import { ToastProvider, useToast } from './components/ToastContext';
 import type { Player, TournamentConfig, Match } from './types';
 import { generateMatches } from './tournamentUtils';
-import { saveTournamentState, loadTournamentState, clearTournamentState, hasSavedTournamentState } from './cookieUtils';
+import {
+  saveTournamentState,
+  loadTournamentState,
+  clearTournamentState,
+  hasSavedTournamentState,
+} from './cookieUtils';
 import './App.css';
+
+const DEFAULT_CONFIG: TournamentConfig = {
+  tournamentName: 'Tennis Tournament',
+  gameType: 'singles',
+  doublesPartnerMode: 'fixed',
+  scoringMode: 'sets',
+  courts: ['Court 1', 'Court 2'],
+  startTime: '09:00',
+  matchDuration: 60,
+  breakDuration: 0,
+  scheduledBreaks: [],
+  enforceNonRepeatingMatches: true,
+  enforceFairMatches: true,
+  allowBypass: true,
+};
+
+const DEFAULT_PLAYERS: Player[] = [
+  { id: '1', name: 'Player 1', skillLevel: 5 },
+  { id: '2', name: 'Player 2', skillLevel: 5 },
+];
+
+interface WarningDialogState {
+  warnings: string[];
+  matches: Match[];
+  config: TournamentConfig;
+  players: Player[];
+  allowProceed: boolean;
+}
 
 function AppContent() {
   const { showToast } = useToast();
   const [tournamentStarted, setTournamentStarted] = useState(false);
+  const [editingSetup, setEditingSetup] = useState(false);
   const [matches, setMatches] = useState<Match[]>([]);
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [config, setConfig] = useState<TournamentConfig | null>(null);
+  const [players, setPlayers] = useState<Player[]>(DEFAULT_PLAYERS);
+  const [config, setConfig] = useState<TournamentConfig>(DEFAULT_CONFIG);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [showLoadPrompt, setShowLoadPrompt] = useState(false);
+  const [pendingWarning, setPendingWarning] = useState<WarningDialogState | null>(null);
 
-  // Load saved tournament on mount
+  const hasExistingTournament = useMemo(
+    () => matches.length > 0 || warnings.length > 0,
+    [matches.length, warnings.length]
+  );
+
   useEffect(() => {
     if (hasSavedTournamentState()) {
       setShowLoadPrompt(true);
     }
   }, []);
 
-  // Save tournament state whenever it changes
   useEffect(() => {
     if (tournamentStarted && config) {
       saveTournamentState({
@@ -33,7 +71,6 @@ function AppContent() {
         warnings,
         tournamentStarted,
       });
-      // Show subtle save indicator
       showToast('Tournament saved', 'success', 1500);
     }
   }, [tournamentStarted, config, players, matches, warnings, showToast]);
@@ -47,39 +84,84 @@ function AppContent() {
       setWarnings(savedState.warnings);
       setTournamentStarted(savedState.tournamentStarted);
     }
+    setEditingSetup(false);
     setShowLoadPrompt(false);
+  };
+
+  const resetToDefaults = () => {
+    setConfig(DEFAULT_CONFIG);
+    setPlayers(DEFAULT_PLAYERS);
+    setMatches([]);
+    setWarnings([]);
   };
 
   const handleStartFresh = () => {
     clearTournamentState();
+    resetToDefaults();
+    setTournamentStarted(false);
+    setEditingSetup(false);
     setShowLoadPrompt(false);
+  };
+
+  const syncMatchesWithPlayers = (existingMatches: Match[], updatedPlayers: Player[]) =>
+    existingMatches.map(match => ({
+      ...match,
+      team1: match.team1
+        .map(player => updatedPlayers.find(p => p.id === player.id))
+        .filter(Boolean) as Player[],
+      team2: match.team2
+        .map(player => updatedPlayers.find(p => p.id === player.id))
+        .filter(Boolean) as Player[],
+    }));
+
+  const finalizeTournament = (
+    newConfig: TournamentConfig,
+    newPlayers: Player[],
+    newMatches: Match[],
+    newWarnings: string[]
+  ) => {
+    setMatches(newMatches);
+    setPlayers(newPlayers);
+    setConfig(newConfig);
+    setWarnings(newWarnings);
+    setPendingWarning(null);
+    setTournamentStarted(true);
+    setEditingSetup(false);
   };
 
   const handleStartTournament = (newConfig: TournamentConfig, newPlayers: Player[]) => {
     const result = generateMatches(newPlayers, newConfig);
-    
-    // Show warnings if any and allow bypass
-    if (result.warnings.length > 0 && newConfig.allowBypass) {
-      const proceed = window.confirm(
-        `Warning: ${result.warnings.join('\n')}\n\nDo you want to proceed with the tournament generation?`
-      );
-      if (!proceed) {
-        return;
-      }
-    } else if (result.warnings.length > 0 && !newConfig.allowBypass) {
-      alert(`Cannot generate tournament:\n${result.warnings.join('\n')}`);
+
+    if (result.warnings.length > 0) {
+      setPendingWarning({
+        warnings: result.warnings,
+        matches: result.matches,
+        config: newConfig,
+        players: newPlayers,
+        allowProceed: newConfig.allowBypass,
+      });
       return;
     }
 
-    setMatches(result.matches);
-    setPlayers(newPlayers);
-    setConfig(newConfig);
-    setWarnings(result.warnings);
-    setTournamentStarted(true);
+    finalizeTournament(newConfig, newPlayers, result.matches, result.warnings);
+  };
+
+  const handleConfirmWarning = () => {
+    if (!pendingWarning || !pendingWarning.allowProceed) {
+      setPendingWarning(null);
+      return;
+    }
+
+    finalizeTournament(
+      pendingWarning.config,
+      pendingWarning.players,
+      pendingWarning.matches,
+      pendingWarning.warnings
+    );
   };
 
   const handleUpdateMatch = (matchId: string, updatedMatch: Match) => {
-    setMatches(matches.map(m => m.id === matchId ? updatedMatch : m));
+    setMatches(prev => prev.map(m => (m.id === matchId ? updatedMatch : m)));
   };
 
   const handleUpdateTournament = (updatedPlayers: Player[], updatedMatches: Match[]) => {
@@ -87,23 +169,30 @@ function AppContent() {
     setMatches(updatedMatches);
   };
 
-  const handleBack = () => {
-    const confirm = window.confirm(
-      'Going back will keep your tournament saved. Do you want to start a new tournament?\n\nClick OK to clear and start fresh, or Cancel to keep the current tournament.'
-    );
-    
-    if (confirm) {
-      clearTournamentState();
-      setTournamentStarted(false);
-      setMatches([]);
-      setPlayers([]);
-      setConfig(null);
-      setWarnings([]);
-    } else {
-      // Just go back to view, keeping state
-      setTournamentStarted(false);
-    }
+  const handleEditSetup = () => {
+    setEditingSetup(true);
+    setTournamentStarted(false);
   };
+
+  const handleSaveSetupOnly = (updatedConfig: TournamentConfig, updatedPlayers: Player[]) => {
+    setConfig(updatedConfig);
+    setPlayers(updatedPlayers);
+    setMatches(syncMatchesWithPlayers(matches, updatedPlayers));
+    setEditingSetup(false);
+    setTournamentStarted(true);
+    showToast('Setup updated — matches refreshed with new details', 'success');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingSetup(false);
+    setTournamentStarted(true);
+  };
+
+  const handleCloseWarning = () => {
+    setPendingWarning(null);
+  };
+
+  const shouldShowConfig = !tournamentStarted || editingSetup;
 
   if (showLoadPrompt) {
     return (
@@ -128,18 +217,55 @@ function AppContent() {
 
   return (
     <div className="app">
-      {!tournamentStarted ? (
-        <ConfigPanel onStartTournament={handleStartTournament} />
+      {shouldShowConfig ? (
+        <ConfigPanel
+          key={editingSetup ? 'edit-config' : 'new-config'}
+          mode={editingSetup ? 'edit' : 'new'}
+          initialConfig={config}
+          initialPlayers={players}
+          onStartTournament={handleStartTournament}
+          onSaveConfigOnly={hasExistingTournament ? handleSaveSetupOnly : undefined}
+          onCancelEdit={hasExistingTournament ? handleCancelEdit : undefined}
+        />
       ) : (
         <TournamentView
           matches={matches}
           players={players}
-          config={config!}
+          config={config}
           warnings={warnings}
-          onBack={handleBack}
+          onEditSetup={handleEditSetup}
+          onStartFresh={handleStartFresh}
           onUpdateMatch={handleUpdateMatch}
           onUpdateTournament={handleUpdateTournament}
         />
+      )}
+
+      {pendingWarning && (
+        <div className="warning-overlay">
+          <div className="warning-modal">
+            <h3>⚠️ Generation Warnings</h3>
+            <ul className="warning-list">
+              {pendingWarning.warnings.map((warning, idx) => (
+                <li key={idx}>{warning}</li>
+              ))}
+            </ul>
+            <div className="warning-actions">
+              <button className="btn-secondary" onClick={handleCloseWarning}>
+                Adjust Settings
+              </button>
+              {pendingWarning.allowProceed && (
+                <button className="btn-primary" onClick={handleConfirmWarning}>
+                  Regenerate Anyway
+                </button>
+              )}
+            </div>
+            {!pendingWarning.allowProceed && (
+              <p className="warning-note">
+                Bypass is disabled. Please adjust courts, players, or timing to continue.
+              </p>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
