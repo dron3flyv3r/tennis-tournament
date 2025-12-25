@@ -1,16 +1,19 @@
 import React, { useState, useMemo } from 'react';
-import type { Match, Player, TournamentConfig } from '../types';
+import type { Match, Player, TournamentConfig, WarningMessage } from '../types';
 import MatchCard from './MatchCard';
 import TournamentReport from './TournamentReport';
 import EditTournamentModal from './EditTournamentModal';
 import { generateReport } from '../tournamentUtils';
+import { useI18n } from '../i18n';
+import LanguageToggle from './LanguageToggle';
+import SetupSummary from './SetupSummary';
 import './TournamentView.css';
 
 interface TournamentViewProps {
   matches: Match[];
   players: Player[];
   config: TournamentConfig;
-  warnings: string[];
+  warnings: WarningMessage[];
   onEditSetup: () => void;
   onStartFresh: () => void;
   onUpdateMatch: (matchId: string, match: Match) => void;
@@ -32,6 +35,7 @@ const TournamentView: React.FC<TournamentViewProps> = ({
   onUpdateMatch,
   onUpdateTournament,
 }) => {
+  const { t } = useI18n();
   const [showReport, setShowReport] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [filterCourt, setFilterCourt] = useState<string>('all');
@@ -138,20 +142,26 @@ const TournamentView: React.FC<TournamentViewProps> = ({
     <div className="tournament-view">
       <div className="tournament-header">
         <button type="button" onClick={() => setShowSetupOptions(true)} className="btn-back">
-          ← Setup
+          {t('tournament.setup')}
         </button>
         <div className="tournament-title">
           <h1>{config.tournamentName}</h1>
           <div className="tournament-info">
-            <span className="game-type-badge">{config.gameType.toUpperCase()}</span>
+            <span className="game-type-badge">
+              {config.gameType === 'doubles' ? t('config.basics.doubles') : t('config.basics.singles')}
+            </span>
             <span className="progress-badge">
-              {completedMatches} / {totalMatches} Matches Completed
+              {t('tournament.matchesCompleted', {
+                completed: completedMatches,
+                total: totalMatches,
+              })}
             </span>
           </div>
         </div>
         <div className="header-actions">
+          <LanguageToggle />
           <button type="button" onClick={handleEditTournament} className="btn-edit">
-            ✏️ Edit Tournament
+            {t('tournament.edit')}
           </button>
           <button
             type="button"
@@ -159,120 +169,147 @@ const TournamentView: React.FC<TournamentViewProps> = ({
             className="btn-report"
             disabled={completedMatches === 0}
           >
-            📊 View Report
+            {t('tournament.viewReport')}
           </button>
         </div>
       </div>
 
-      {warnings.length > 0 && (
-        <div className="warnings-section">
-          <h3>⚠️ Warnings</h3>
-          {warnings.map((warning, idx) => (
-            <div key={idx} className="warning-message">
-              {warning}
-            </div>
-          ))}
-          {config.allowBypass && (
-            <div className="bypass-info">
-              ℹ️ Bypass mode is enabled. These constraints could not be fully satisfied.
+      <div className="tournament-layout">
+        <div className="tournament-main">
+          {warnings.length > 0 && (
+            <div className="warnings-section">
+              <h3>{t('tournament.warnings')}</h3>
+              {warnings.map((warning, idx) => (
+                <div key={idx} className="warning-message">
+                  {warning.id === 'legacy'
+                    ? warning.message ?? ''
+                    : t(`warnings.${warning.id}`, warning.values)}
+                </div>
+              ))}
+              {config.allowBypass && (
+                <div className="bypass-info">
+                  {t('tournament.bypassEnabled')}
+                </div>
+              )}
             </div>
           )}
-        </div>
-      )}
 
-      <div className="controls-section">
-        <div className="filter-section">
-          <label>Filter by Court:</label>
-          <select value={filterCourt} onChange={(e) => setFilterCourt(e.target.value)}>
-            <option value="all">All Courts</option>
-            {config.courts.map(court => (
-              <option key={court} value={court}>{court}</option>
-            ))}
-          </select>
-        </div>
+          <div className="controls-section">
+            <div className="filter-section">
+              <label>{t('tournament.filterByCourt')}</label>
+              <select value={filterCourt} onChange={(e) => setFilterCourt(e.target.value)}>
+                <option value="all">{t('tournament.allCourts')}</option>
+                {config.courts.map(court => (
+                  <option key={court} value={court}>{court}</option>
+                ))}
+              </select>
+            </div>
 
-        <div className="round-controls">
-          <button type="button" onClick={expandAll} className="btn-expand">Expand All</button>
-          <button type="button" onClick={collapseAll} className="btn-collapse">Collapse All</button>
-        </div>
-      </div>
+            <div className="round-controls">
+              <button type="button" onClick={expandAll} className="btn-expand">
+                {t('tournament.expandAll')}
+              </button>
+              <button type="button" onClick={collapseAll} className="btn-collapse">
+                {t('tournament.collapseAll')}
+              </button>
+            </div>
+          </div>
 
-      {rounds.length === 0 ? (
-        <div className="no-matches">
-          No matches found for this filter.
-        </div>
-      ) : (
-        <div className="rounds-container">
-          {rounds.map((round, roundIndex) => {
-            const roundCompleted = round.matches.every(m => m.completed);
-            const roundInProgress = round.matches.some(m => m.completed) && !roundCompleted;
-            const isExpanded = expandedRounds.has(round.time);
-            const matchesId = `round-${roundIndex}-matches`;
+          {rounds.length === 0 ? (
+            <div className="no-matches">
+              {t('tournament.noMatches')}
+            </div>
+          ) : (
+            <div className="rounds-container">
+              {rounds.map((round, roundIndex) => {
+                const roundCompleted = round.matches.every(m => m.completed);
+                const roundInProgress = round.matches.some(m => m.completed) && !roundCompleted;
+                const isExpanded = expandedRounds.has(round.time);
+                const matchesId = `round-${roundIndex}-matches`;
+                const completedInRound = round.matches.filter(m => m.completed).length;
 
-            return (
-              <div
-                key={round.time}
-                className={`round-section ${roundCompleted ? 'completed' : ''} ${roundInProgress ? 'in-progress' : ''}`}
-              >
-                <button
-                  type="button"
-                  className="round-header"
-                  onClick={() => toggleRound(round.time)}
-                  aria-expanded={isExpanded}
-                  aria-controls={isExpanded ? matchesId : undefined}
-                >
-                  <div className="round-header-left">
-                    <span className="round-toggle">
-                      {isExpanded ? '▼' : '▶'}
-                    </span>
-                    <h3 className="round-title">
-                      Round {roundIndex + 1}
-                    </h3>
-                    <span className="round-time">⏰ {round.time}</span>
-                  </div>
-                  <div className="round-header-right">
-                    <span className="round-progress">
-                      {round.matches.filter(m => m.completed).length} / {round.matches.length} Complete
-                    </span>
-                    {roundCompleted && <span className="round-badge completed-badge">✓ Done</span>}
-                    {roundInProgress && <span className="round-badge progress-badge">In Progress</span>}
-                    {!roundCompleted && !roundInProgress && (
-                      <span className="round-badge pending-badge">Pending</span>
-                    )}
-                  </div>
-                </button>
+                return (
+                  <div
+                    key={round.time}
+                    className={`round-section ${roundCompleted ? 'completed' : ''} ${roundInProgress ? 'in-progress' : ''}`}
+                  >
+                    <button
+                      type="button"
+                      className="round-header"
+                      onClick={() => toggleRound(round.time)}
+                      aria-expanded={isExpanded}
+                      aria-controls={isExpanded ? matchesId : undefined}
+                    >
+                      <div className="round-header-left">
+                        <span className="round-toggle">
+                          {isExpanded ? '▼' : '▶'}
+                        </span>
+                        <h3 className="round-title">
+                          {t('tournament.round', { number: roundIndex + 1 })}
+                        </h3>
+                        <span className="round-time">{round.time}</span>
+                      </div>
+                      <div className="round-header-right">
+                        <span className="round-progress">
+                          {t('tournament.completeCount', {
+                            done: completedInRound,
+                            total: round.matches.length,
+                          })}
+                        </span>
+                        {roundCompleted && (
+                          <span className="round-badge completed-badge">{t('tournament.badge.done')}</span>
+                        )}
+                        {roundInProgress && (
+                          <span className="round-badge progress-badge">{t('tournament.badge.inProgress')}</span>
+                        )}
+                        {!roundCompleted && !roundInProgress && (
+                          <span className="round-badge pending-badge">{t('tournament.badge.pending')}</span>
+                        )}
+                      </div>
+                    </button>
 
-                {isExpanded && (
-                  <div className="round-matches" id={matchesId}>
-                    <div className="matches-grid">
-                      {round.matches.map(match => (
-                        <MatchCard
-                          key={match.id}
-                          match={match}
-                          config={config}
-                          onUpdateMatch={onUpdateMatch}
-                        />
-                      ))}
-                    </div>
-                    {getPlayersOnBench(round).length > 0 && (
-                      <div className="bench-section">
-                        <h4 className="bench-title">🪑 On the Bench:</h4>
-                        <div className="bench-players">
-                          {getPlayersOnBench(round).map(player => (
-                            <span key={player.id} className="bench-player">
-                              {player.name}
-                            </span>
+                    {isExpanded && (
+                      <div className="round-matches" id={matchesId}>
+                        <div className="matches-grid">
+                          {round.matches.map(match => (
+                            <MatchCard
+                              key={match.id}
+                              match={match}
+                              config={config}
+                              onUpdateMatch={onUpdateMatch}
+                            />
                           ))}
                         </div>
+                        {getPlayersOnBench(round).length > 0 && (
+                          <div className="bench-section">
+                            <h4 className="bench-title">{t('tournament.onBench')}</h4>
+                            <div className="bench-players">
+                              {getPlayersOnBench(round).map(player => (
+                                <span key={player.id} className="bench-player">
+                                  {player.name}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-                )}
-              </div>
-            );
-          })}
+                );
+              })}
+            </div>
+          )}
         </div>
-      )}
+
+        <aside className="tournament-summary">
+          <SetupSummary
+            title={t('summary.settingsTitle')}
+            config={config}
+            players={players}
+            defaultOpen={false}
+          />
+        </aside>
+      </div>
 
       {showEditModal && (
         <EditTournamentModal
@@ -287,8 +324,8 @@ const TournamentView: React.FC<TournamentViewProps> = ({
       {showSetupOptions && (
         <div className="setup-overlay">
           <div className="setup-modal">
-            <h3>Return to setup</h3>
-            <p>Would you like to adjust the current setup or start fresh?</p>
+            <h3>{t('tournament.setupModal.title')}</h3>
+            <p>{t('tournament.setupModal.message')}</p>
             <div className="setup-actions">
               <button
                 type="button"
@@ -298,7 +335,7 @@ const TournamentView: React.FC<TournamentViewProps> = ({
                   onEditSetup();
                 }}
               >
-                Edit current setup
+                {t('tournament.setupModal.edit')}
               </button>
               <button
                 type="button"
@@ -308,10 +345,10 @@ const TournamentView: React.FC<TournamentViewProps> = ({
                   onStartFresh();
                 }}
               >
-                Start fresh
+                {t('tournament.setupModal.startFresh')}
               </button>
               <button type="button" className="btn-tertiary" onClick={() => setShowSetupOptions(false)}>
-                Cancel
+                {t('common.cancel')}
               </button>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import type { Player, Match, TournamentConfig, PlayerStats, TournamentReport } from './types';
+import type { Player, Match, TournamentConfig, PlayerStats, TournamentReport, WarningMessage } from './types';
 
 /**
  * Generates all possible matches for the tournament
@@ -6,8 +6,8 @@ import type { Player, Match, TournamentConfig, PlayerStats, TournamentReport } f
 export function generateMatches(
   players: Player[],
   config: TournamentConfig
-): { matches: Match[]; warnings: string[] } {
-  const warnings: string[] = [];
+): { matches: Match[]; warnings: WarningMessage[] } {
+  const warnings: WarningMessage[] = [];
 
   if (config.gameType === 'singles') {
     return generateSinglesMatches(players, config, warnings);
@@ -19,8 +19,8 @@ export function generateMatches(
 function generateSinglesMatches(
   players: Player[],
   config: TournamentConfig,
-  warnings: string[]
-): { matches: Match[]; warnings: string[] } {
+  warnings: WarningMessage[]
+): { matches: Match[]; warnings: WarningMessage[] } {
   const matches: Match[] = [];
   const playerMatchCount = new Map<string, number>();
   players.forEach(p => playerMatchCount.set(p.id, 0));
@@ -67,7 +67,10 @@ function generateSinglesMatches(
     const minMatches = Math.min(...matchCounts);
     const maxMatches = Math.max(...matchCounts);
     if (maxMatches - minMatches > 0) {
-      warnings.push(`Unable to create perfectly fair matches. Match count varies from ${minMatches} to ${maxMatches}.`);
+      warnings.push({
+        id: 'fairness',
+        values: { min: minMatches, max: maxMatches },
+      });
     }
   }
 
@@ -77,12 +80,12 @@ function generateSinglesMatches(
 function generateDoublesMatches(
   players: Player[],
   config: TournamentConfig,
-  warnings: string[]
-): { matches: Match[]; warnings: string[] } {
+  warnings: WarningMessage[]
+): { matches: Match[]; warnings: WarningMessage[] } {
   const matches: Match[] = [];
 
   if (players.length < 4) {
-    warnings.push('Need at least 4 players for doubles matches.');
+    warnings.push({ id: 'doublesMinPlayers' });
     return { matches, warnings };
   }
 
@@ -96,12 +99,12 @@ function generateDoublesMatches(
 function generateFixedDoublesMatches(
   players: Player[],
   config: TournamentConfig,
-  warnings: string[]
-): { matches: Match[]; warnings: string[] } {
+  warnings: WarningMessage[]
+): { matches: Match[]; warnings: WarningMessage[] } {
   const matches: Match[] = [];
 
   if (players.length % 2 !== 0) {
-    warnings.push('Odd number of players. One player will sit out each round.');
+    warnings.push({ id: 'oddPlayers' });
   }
 
   // Pair players sequentially (could be enhanced to use pre-defined pairs)
@@ -126,8 +129,8 @@ function generateFixedDoublesMatches(
 function generateRandomDoublesMatches(
   players: Player[],
   config: TournamentConfig,
-  warnings: string[]
-): { matches: Match[]; warnings: string[] } {
+  warnings: WarningMessage[]
+): { matches: Match[]; warnings: WarningMessage[] } {
   const matches: Match[] = [];
   const partnerPairs = new Set<string>();
   const opponentPairs = new Set<string>();
@@ -212,7 +215,10 @@ function generateRandomDoublesMatches(
     const minMatches = Math.min(...matchCounts);
     const maxMatches = Math.max(...matchCounts);
     if (maxMatches - minMatches > 1) {
-      warnings.push(`Unable to create perfectly fair matches. Match count varies from ${minMatches} to ${maxMatches}.`);
+      warnings.push({
+        id: 'fairness',
+        values: { min: minMatches, max: maxMatches },
+      });
     }
   }
 

@@ -14,23 +14,24 @@
 .report-header h1 {
   flex: 1;
   text-align: center;
-  color: #2c3e50;
+  color: var(--color-ink);
   margin: 0;
 }
 
 .report-section {
-  background: white;
-  border-radius: 8px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
   padding: 25px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--color-border);
 }
 
 .report-section h2 {
-  color: #34495e;
+  color: var(--color-ink);
   margin-top: 0;
   margin-bottom: 20px;
-  border-bottom: 2px solid #3498db;
+  border-bottom: 2px solid var(--color-accent);
   padding-bottom: 10px;
 }
 
@@ -44,14 +45,14 @@
   display: flex;
   flex-direction: column;
   padding: 15px;
-  background: #f8f9fa;
-  border-radius: 6px;
-  border-left: 4px solid #3498db;
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--color-accent);
 }
 
 .summary-label {
   font-size: 12px;
-  color: #7f8c8d;
+  color: var(--color-muted);
   font-weight: 500;
   margin-bottom: 5px;
   text-transform: uppercase;
@@ -60,7 +61,7 @@
 .summary-value {
   font-size: 28px;
   font-weight: 700;
-  color: #2c3e50;
+  color: var(--color-ink);
 }
 
 .stats-table-container {
@@ -73,7 +74,7 @@
 }
 
 .stats-table th {
-  background: #34495e;
+  background: var(--color-ink);
   color: white;
   padding: 12px 8px;
   text-align: left;
@@ -84,24 +85,24 @@
 
 .stats-table td {
   padding: 12px 8px;
-  border-bottom: 1px solid #ecf0f1;
+  border-bottom: 1px solid var(--color-border);
   font-size: 14px;
 }
 
 .stats-table tbody tr:hover {
-  background: #f8f9fa;
+  background: var(--color-surface-muted);
 }
 
 .stats-table tbody tr:nth-child(1) {
-  background: #fef9e7;
+  background: rgba(213, 133, 92, 0.12);
 }
 
 .stats-table tbody tr:nth-child(2) {
-  background: #f4f6f7;
+  background: rgba(47, 143, 95, 0.08);
 }
 
 .stats-table tbody tr:nth-child(3) {
-  background: #fdf2e9;
+  background: rgba(213, 133, 92, 0.08);
 }
 
 .rank-cell {
@@ -112,29 +113,29 @@
 
 .player-cell {
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--color-ink);
 }
 
 .skill-cell {
-  color: #7f8c8d;
+  color: var(--color-muted);
   text-align: center;
 }
 
 .win-cell {
-  color: #27ae60;
+  color: var(--color-accent-strong);
   font-weight: 600;
   text-align: center;
 }
 
 .loss-cell {
-  color: #e74c3c;
+  color: #c54c4c;
   font-weight: 600;
   text-align: center;
 }
 
 .winrate-cell {
   font-weight: 600;
-  color: #3498db;
+  color: var(--color-accent);
   text-align: center;
 }
 
@@ -145,11 +146,11 @@
 }
 
 .fun-stat-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-strong));
   color: white;
   padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
   transition: all 0.3s ease;
 }
 
@@ -159,19 +160,19 @@
 }
 
 .fun-stat-card:nth-child(1) {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, var(--color-clay), #b86d47);
 }
 
 .fun-stat-card:nth-child(2) {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(135deg, #3ca67a, #2f8f5f);
 }
 
 .fun-stat-card:nth-child(3) {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  background: linear-gradient(135deg, #5bbf8a, #2f8f5f);
 }
 
 .fun-stat-card:nth-child(4) {
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  background: linear-gradient(135deg, #d5855c, #f3caa9);
 }
 
 .fun-stat-icon {
@@ -204,21 +205,21 @@
 }
 
 .incomplete-notice {
-  background: #d1ecf1;
-  border: 1px solid #bee5eb;
-  border-radius: 6px;
+  background: rgba(47, 143, 95, 0.12);
+  border: 1px solid rgba(47, 143, 95, 0.2);
+  border-radius: var(--radius-md);
   padding: 15px;
-  color: #0c5460;
+  color: var(--color-ink);
   text-align: center;
   font-size: 14px;
 }
 
 .btn-back {
   padding: 10px 20px;
-  background: #95a5a6;
-  color: white;
-  border: none;
-  border-radius: 6px;
+  background: transparent;
+  color: var(--color-ink);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
@@ -226,7 +227,7 @@
 }
 
 .btn-back:hover {
-  background: #7f8c8d;
+  border-color: var(--color-ink);
 }
 
 @media (max-width: 768px) {

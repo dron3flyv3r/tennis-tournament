@@ -1,10 +1,10 @@
-import type { Player, TournamentConfig, Match } from './types';
+import type { Player, TournamentConfig, Match, WarningMessage } from './types';
 
 interface TournamentState {
   config: TournamentConfig;
   players: Player[];
   matches: Match[];
-  warnings: string[];
+  warnings: WarningMessage[];
   tournamentStarted: boolean;
 }
 
@@ -29,6 +29,29 @@ const getLocalStorage = () => {
 
 const storage = getLocalStorage();
 
+const normalizeWarnings = (warnings: unknown): WarningMessage[] => {
+  if (!Array.isArray(warnings)) {
+    return [];
+  }
+
+  return warnings
+    .map(item => {
+      if (typeof item === 'string') {
+        return { id: 'legacy', message: item } satisfies WarningMessage;
+      }
+      if (item && typeof item === 'object' && 'id' in item) {
+        return item as WarningMessage;
+      }
+      return { id: 'legacy', message: String(item) } satisfies WarningMessage;
+    })
+    .filter(Boolean);
+};
+
+const normalizeState = (state: TournamentState | null): TournamentState | null => {
+  if (!state) return null;
+  return { ...state, warnings: normalizeWarnings(state.warnings) };
+};
+
 function readFromLocalStorage(): TournamentState | null {
   if (!storage) {
     return null;
@@ -40,7 +63,7 @@ function readFromLocalStorage(): TournamentState | null {
   }
 
   try {
-    return JSON.parse(raw) as TournamentState;
+    return normalizeState(JSON.parse(raw) as TournamentState);
   } catch (error) {
     console.error('Failed to parse tournament state from local storage:', error);
     storage.removeItem(STORAGE_KEY);
@@ -103,11 +126,13 @@ export function loadTournamentState(): TournamentState | null {
       }
       if (cookie.indexOf(nameEQ) === 0) {
         const encodedState = cookie.substring(nameEQ.length, cookie.length);
-  const jsonState = decodeURIComponent(encodedState);
-  const parsed = JSON.parse(jsonState) as TournamentState;
-  // Attempt to migrate cookie-based saves into local storage for future reliability.
-  writeToLocalStorage(parsed);
-  return parsed;
+        const jsonState = decodeURIComponent(encodedState);
+        const parsed = normalizeState(JSON.parse(jsonState) as TournamentState);
+        if (parsed) {
+          // Attempt to migrate cookie-based saves into local storage for future reliability.
+          writeToLocalStorage(parsed);
+        }
+        return parsed;
       }
     }
     return null;

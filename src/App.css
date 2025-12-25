@@ -4,118 +4,102 @@
   box-sizing: border-box;
 }
 
-:root {
-  --touch-target-size: 44px;
-}
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
-  -webkit-tap-highlight-color: transparent;
-}
-
 .app {
   min-height: 100vh;
-  padding: 20px;
+  padding: 24px;
 }
 
 button {
   touch-action: manipulation;
+  font-family: inherit;
 }
 
 button:focus-visible,
 .round-header:focus-visible {
-  outline: 3px solid rgba(52, 152, 219, 0.6);
+  outline: 3px solid rgba(47, 143, 95, 0.45);
   outline-offset: 2px;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: 'Courier New', monospace;
 }
 
 /* Load Prompt Modal */
 .load-prompt-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  inset: 0;
+  background: rgba(18, 25, 21, 0.75);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
+  padding: 16px;
 }
 
 .load-prompt-modal {
-  background: white;
-  border-radius: 12px;
-  padding: 40px;
-  max-width: 500px;
-  width: 90%;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 36px;
+  max-width: 520px;
+  width: 100%;
+  box-shadow: var(--shadow-card);
   text-align: center;
+  border: 1px solid var(--color-border);
 }
 
 .load-prompt-modal h2 {
-  color: #2c3e50;
-  margin-bottom: 15px;
+  color: var(--color-ink);
+  margin-bottom: 12px;
 }
 
 .load-prompt-modal p {
-  color: #555;
+  color: var(--color-muted);
   font-size: 16px;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
   line-height: 1.6;
 }
 
 .load-prompt-actions {
   display: flex;
-  gap: 15px;
+  gap: 12px;
   justify-content: center;
+  flex-wrap: wrap;
 }
 
 .btn-start-fresh,
 .btn-load-saved {
-  padding: 15px 30px;
+  padding: 12px 24px;
   border: none;
-  border-radius: 6px;
+  border-radius: 999px;
   cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  transition: all 0.3s ease;
+  font-size: 15px;
+  font-weight: 700;
+  transition: all 0.2s ease;
 }
 
 .btn-start-fresh {
-  background: #95a5a6;
-  color: white;
+  background: transparent;
+  color: var(--color-ink);
+  border: 1px solid var(--color-border);
 }
 
 .btn-start-fresh:hover {
-  background: #7f8c8d;
-  transform: translateY(-2px);
+  border-color: var(--color-ink);
 }
 
 .btn-load-saved {
-  background: #27ae60;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-strong));
   color: white;
 }
 
 .btn-load-saved:hover {
-  background: #229954;
-  transform: translateY(-2px);
+  filter: brightness(0.96);
 }
 
 .warning-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(18, 25, 21, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -124,23 +108,24 @@ code {
 }
 
 .warning-modal {
-  background: white;
-  border-radius: 12px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
   padding: 20px;
-  max-width: 520px;
+  max-width: 540px;
   width: 100%;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-border);
 }
 
 .warning-modal h3 {
   margin-bottom: 10px;
-  color: #b45309;
+  color: var(--color-clay);
 }
 
 .warning-list {
   margin: 0 0 12px 0;
   padding-left: 18px;
-  color: #92400e;
+  color: var(--color-ink);
 }
 
 .warning-actions {
@@ -152,22 +137,22 @@ code {
 
 .warning-note {
   margin-top: 8px;
-  color: #6b7280;
+  color: var(--color-muted);
 }
 
 @media (max-width: 768px) {
   .app {
-    padding: 16px;
+    padding: 18px 14px;
   }
 
   .load-prompt-modal {
-    padding: 30px 24px;
+    padding: 28px 20px;
   }
 }
 
 @media (max-width: 480px) {
   .app {
-    padding: 12px;
+    padding: 14px 12px 20px;
   }
 
   .load-prompt-modal {
@@ -194,10 +179,5 @@ code {
   input,
   select {
     font-size: 16px;
-  }
-
-  .btn-start-fresh,
-  .btn-load-saved {
-    font-size: 17px;
   }
 }

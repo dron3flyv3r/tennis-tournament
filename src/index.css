@@ -1,6 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+  --font-body: 'Space Grotesk', 'Segoe UI', sans-serif;
+  --font-display: 'Fraunces', 'Georgia', serif;
+  --color-bg: #f2f2ea;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f7f6f1;
+  --color-ink: #1d2a21;
+  --color-muted: #5f6d64;
+  --color-border: #d7dfd1;
+  --color-accent: #2f8f5f;
+  --color-accent-strong: #1f6f48;
+  --color-clay: #d5855c;
+  --color-clay-soft: #f3dccf;
+  --shadow-soft: 0 12px 30px rgba(29, 42, 33, 0.08);
+  --shadow-card: 0 18px 45px rgba(29, 42, 33, 0.12);
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --touch-target-size: 44px;
+}
+
 body {
   margin: 0;
   padding: 0;
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  background:
+    radial-gradient(circle at top right, rgba(47, 143, 95, 0.18), transparent 45%),
+    radial-gradient(circle at 15% 35%, rgba(213, 133, 92, 0.16), transparent 40%),
+    linear-gradient(135deg, #f6f4ee 0%, #e8f0e0 100%);
+  min-height: 100vh;
+}
+
+h1,
+ h2,
+ h3,
+ h4,
+ h5,
+ h6 {
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
 }
 
 #root {

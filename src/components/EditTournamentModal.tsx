@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import type { Player, Match, TournamentConfig } from '../types';
+import { useI18n } from '../i18n';
 import './EditTournamentModal.css';
 
 interface EditTournamentModalProps {
@@ -33,6 +34,7 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
   const [activeTab, setActiveTab] = useState<'players' | 'matches'>('players');
   const [banner, setBanner] = useState<BannerState>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const { t } = useI18n();
 
   const duplicateNames = useMemo(() => {
     const seen = new Map<string, number>();
@@ -64,21 +66,21 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
     });
     setBanner({
       type: 'success',
-      message: 'Removed the player from all matches. You can delete them now.',
+      message: t('edit.banner.removedFromMatches'),
     });
   };
 
   const handleAddPlayer = () => {
     resetBanner();
     if (!newPlayerName.trim()) {
-      setFieldErrors(prev => ({ ...prev, newPlayer: 'Enter a player name.' }));
-      setBanner({ type: 'error', message: 'Player name is required.' });
+      setFieldErrors(prev => ({ ...prev, newPlayer: t('errors.newPlayerNameRequired') }));
+      setBanner({ type: 'error', message: t('edit.banner.playerNameRequired') });
       return;
     }
     const key = newPlayerName.trim().toLowerCase();
     if (duplicateNames.has(key)) {
-      setFieldErrors(prev => ({ ...prev, newPlayer: 'Duplicate name — choose a unique one.' }));
-      setBanner({ type: 'error', message: 'Duplicate player names are not allowed.' });
+      setFieldErrors(prev => ({ ...prev, newPlayer: t('errors.playerNameDuplicate') }));
+      setBanner({ type: 'error', message: t('edit.banner.duplicateName') });
       return;
     }
 
@@ -99,11 +101,11 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
     );
 
     if (playerInMatches) {
-      setFieldErrors(prev => ({ ...prev, [`player-${playerId}`]: 'Remove from matches first.' }));
+      setFieldErrors(prev => ({ ...prev, [`player-${playerId}`]: t('errors.playerRemoveFromMatches') }));
       setBanner({
         type: 'warning',
-        message: 'Player is assigned to matches. Remove them from matches first.',
-        actionLabel: 'Remove from matches',
+        message: t('edit.banner.playerAssigned'),
+        actionLabel: t('edit.removeFromMatches'),
         onAction: () => purgePlayerFromMatches(playerId),
       });
       return;
@@ -126,7 +128,7 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
   const handleDeleteMatch = (matchId: string) => {
     resetBanner();
     setEditedMatches(prev => prev.filter(m => m.id !== matchId));
-    setBanner({ type: 'success', message: 'Match removed.' });
+    setBanner({ type: 'success', message: t('edit.banner.matchRemoved') });
   };
 
   const handleAddMatch = () => {
@@ -185,18 +187,19 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
     const fieldMap: Record<string, string> = {};
 
     if (editedPlayers.length < 2) {
-      errors.push('Tournament must have at least 2 players.');
+      errors.push(t('errors.needPlayersForTournament'));
     }
 
     editedPlayers.forEach(player => {
       const key = player.name.trim().toLowerCase();
       if (!player.name.trim()) {
-        fieldMap[`player-${player.id}`] = 'Name is required.';
-        errors.push('A player is missing a name.');
+        fieldMap[`player-${player.id}`] = t('errors.playerNameRequiredShort');
+        errors.push(t('errors.playerMissingName'));
       } else if (duplicateNames.has(key)) {
-        fieldMap[`player-${player.id}`] = 'Duplicate name — please make it unique.';
-        if (!errors.includes('Duplicate player names detected.')) {
-          errors.push('Duplicate player names detected.');
+        fieldMap[`player-${player.id}`] = t('errors.playerNameDuplicate');
+        const duplicateMessage = t('errors.duplicatePlayerNames');
+        if (!errors.includes(duplicateMessage)) {
+          errors.push(duplicateMessage);
         }
       }
     });
@@ -207,9 +210,9 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
     );
 
     if (invalidMatches.length > 0) {
-      errors.push(`${invalidMatches.length} match(es) need complete teams.`);
+      errors.push(t('errors.matchesNeedTeams', { count: invalidMatches.length }));
       invalidMatches.forEach(match => {
-        fieldMap[`match-${match.id}`] = 'Add enough players to both teams.';
+        fieldMap[`match-${match.id}`] = t('errors.matchNeedsPlayers');
       });
     }
 
@@ -234,8 +237,8 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>✏️ Edit Tournament</h2>
-          <button className="modal-close" onClick={onClose}>
+          <h2>{t('edit.title')}</h2>
+          <button className="modal-close" onClick={onClose} aria-label={t('common.close')}>
             ✕
           </button>
         </div>
@@ -248,7 +251,7 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
               setActiveTab('players');
             }}
           >
-            👥 Players ({editedPlayers.length})
+            {t('edit.tab.players', { count: editedPlayers.length })}
           </button>
           <button
             className={`tab-button ${activeTab === 'matches' ? 'active' : ''}`}
@@ -257,7 +260,7 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
               setActiveTab('matches');
             }}
           >
-            🎾 Matches ({editedMatches.length})
+            {t('edit.tab.matches', { count: editedMatches.length })}
           </button>
         </div>
 
@@ -277,7 +280,7 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
 
           {activeTab === 'players' && (
             <div className="edit-section">
-              <h3>Manage Players</h3>
+              <h3>{t('edit.managePlayers')}</h3>
               <div className="players-list-edit">
                 {editedPlayers.map(player => (
                   <div
@@ -292,7 +295,7 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
                       aria-invalid={Boolean(fieldErrors[`player-${player.id}`])}
                     />
                     <div className="skill-level">
-                      <label>Skill:</label>
+                      <label>{t('config.players.skill')}:</label>
                       <input
                         type="number"
                         min="1"
@@ -305,7 +308,7 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
                       />
                     </div>
                     <button onClick={() => handleRemovePlayer(player.id)} className="btn-remove-small">
-                      Remove
+                      {t('edit.remove')}
                     </button>
                     {fieldErrors[`player-${player.id}`] && (
                       <p className="field-error">{fieldErrors[`player-${player.id}`]}</p>
@@ -316,7 +319,7 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
               <div className="add-player-section">
                 <input
                   type="text"
-                  placeholder="New player name"
+                  placeholder={t('edit.newPlayerPlaceholder')}
                   value={newPlayerName}
                   onChange={e => setNewPlayerName(e.target.value)}
                   onKeyPress={e => e.key === 'Enter' && handleAddPlayer()}
@@ -326,13 +329,13 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
                   type="number"
                   min="1"
                   max="10"
-                  placeholder="Skill"
+                  placeholder={t('config.players.skill')}
                   value={newPlayerSkill}
                   onChange={e => setNewPlayerSkill(parseInt(e.target.value) || 5)}
                   className="skill-input"
                 />
                 <button onClick={handleAddPlayer} className="btn-add-small">
-                  Add Player
+                  {t('edit.addPlayer')}
                 </button>
               </div>
               {fieldErrors.newPlayer && <p className="field-error">{fieldErrors.newPlayer}</p>}
@@ -342,9 +345,9 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
           {activeTab === 'matches' && (
             <div className="edit-section">
               <div className="section-header">
-                <h3>Manage Matches</h3>
+                <h3>{t('edit.manageMatches')}</h3>
                 <button onClick={handleAddMatch} className="btn-add-match">
-                  + Add Match
+                  + {t('edit.addMatch')}
                 </button>
               </div>
               <div className="matches-list-edit">
@@ -372,20 +375,20 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
                         />
                       </div>
                       <button onClick={() => handleDeleteMatch(match.id)} className="btn-delete-match">
-                        Delete
+                        {t('edit.delete')}
                       </button>
                     </div>
 
                     <div className="match-teams-edit">
                       <div className="team-edit">
-                        <label>Team 1:</label>
+                        <label>{t('edit.team1')}:</label>
                         {Array.from({ length: maxPlayersPerTeam }).map((_, idx) => (
                           <div key={idx} className="player-select-row">
                             <select
                               value={match.team1[idx]?.id || ''}
                               onChange={e => handleUpdateMatchPlayer(match.id, 'team1', idx, e.target.value)}
                             >
-                              <option value="">Select player...</option>
+                              <option value="">{t('edit.selectPlayer')}</option>
                               {editedPlayers.map(player => (
                                 <option key={player.id} value={player.id}>
                                   {player.name}
@@ -404,17 +407,17 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
                         ))}
                       </div>
 
-                      <div className="vs-edit">VS</div>
+                      <div className="vs-edit">{t('match.vs')}</div>
 
                       <div className="team-edit">
-                        <label>Team 2:</label>
+                        <label>{t('edit.team2')}:</label>
                         {Array.from({ length: maxPlayersPerTeam }).map((_, idx) => (
                           <div key={idx} className="player-select-row">
                             <select
                               value={match.team2[idx]?.id || ''}
                               onChange={e => handleUpdateMatchPlayer(match.id, 'team2', idx, e.target.value)}
                             >
-                              <option value="">Select player...</option>
+                              <option value="">{t('edit.selectPlayer')}</option>
                               {editedPlayers.map(player => (
                                 <option key={player.id} value={player.id}>
                                   {player.name}
@@ -434,7 +437,9 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
                       </div>
                     </div>
 
-                    {match.completed && <div className="match-completed-badge">✓ Completed</div>}
+                    {match.completed && (
+                      <div className="match-completed-badge">✓ {t('edit.completed')}</div>
+                    )}
                     {fieldErrors[`match-${match.id}`] && (
                       <p className="field-error">{fieldErrors[`match-${match.id}`]}</p>
                     )}
@@ -447,10 +452,10 @@ const EditTournamentModal: React.FC<EditTournamentModalProps> = ({
 
         <div className="modal-footer">
           <button onClick={onClose} className="btn-cancel-modal">
-            Cancel
+            {t('edit.cancel')}
           </button>
           <button onClick={handleSave} className="btn-save-modal">
-            Save Changes
+            {t('edit.saveChanges')}
           </button>
         </div>
       </div>

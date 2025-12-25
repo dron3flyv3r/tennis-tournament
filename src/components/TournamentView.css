@@ -2,15 +2,40 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.tournament-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.tournament-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.tournament-summary {
+  position: relative;
 }
 
 .tournament-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 12px;
   gap: 20px;
   flex-wrap: wrap;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-soft);
 }
 
 .tournament-title {
@@ -21,7 +46,7 @@
 
 .tournament-title h1 {
   margin: 0 0 10px 0;
-  color: #2c3e50;
+  color: var(--color-ink);
 }
 
 .tournament-info {
@@ -40,16 +65,16 @@
 }
 
 .game-type-badge {
-  background: #3498db;
-  color: white;
+  background: rgba(47, 143, 95, 0.16);
+  color: var(--color-accent-strong);
 }
 
 .progress-badge {
-  background: #2ecc71;
-  color: white;
+  background: rgba(213, 133, 92, 0.16);
+  color: #8a4b1f;
 }
 
-.header-actions {
+.tournament-header .header-actions {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
@@ -59,8 +84,8 @@
 .btn-edit,
 .btn-report {
   padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
+  border: 1px solid transparent;
+  border-radius: 999px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
@@ -72,65 +97,66 @@
 }
 
 .btn-back {
-  background: #95a5a6;
-  color: white;
+  background: transparent;
+  color: var(--color-ink);
+  border-color: var(--color-border);
 }
 
 .btn-back:hover {
-  background: #7f8c8d;
+  border-color: var(--color-ink);
 }
 
 .btn-edit {
-  background: #f39c12;
-  color: white;
+  background: var(--color-clay);
+  color: #fff;
 }
 
 .btn-edit:hover {
-  background: #e67e22;
+  filter: brightness(0.96);
 }
 
 .btn-report {
-  background: #9b59b6;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-strong));
   color: white;
 }
 
 .btn-report:hover:not(:disabled) {
-  background: #8e44ad;
+  filter: brightness(0.96);
 }
 
 .btn-report:disabled {
-  background: #bdc3c7;
+  background: #c9d5cc;
   cursor: not-allowed;
 }
 
 .warnings-section {
-  background: #fff3cd;
-  border: 1px solid #ffc107;
-  border-radius: 8px;
-  padding: 20px;
+  background: #fff7e7;
+  border: 1px solid #f1d3a5;
+  border-radius: var(--radius-md);
+  padding: 18px;
   margin-bottom: 20px;
 }
 
 .warnings-section h3 {
   margin-top: 0;
-  color: #856404;
+  color: #8a4b1f;
 }
 
 .warning-message {
   padding: 8px 12px;
-  background: white;
-  border-left: 4px solid #ffc107;
+  background: var(--color-surface);
+  border-left: 4px solid var(--color-clay);
   margin-bottom: 10px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .bypass-info {
-  margin-top: 15px;
-  padding: 10px;
-  background: #d1ecf1;
-  border-left: 4px solid #17a2b8;
-  border-radius: 4px;
-  color: #0c5460;
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(47, 143, 95, 0.1);
+  border-left: 4px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink);
 }
 
 .controls-section {
@@ -147,24 +173,27 @@
   align-items: center;
   gap: 10px;
   padding: 15px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--color-border);
   flex: 1;
   min-width: 250px;
 }
 
 .filter-section label {
   font-weight: 500;
-  color: #555;
+  color: var(--color-ink);
 }
 
 .filter-section select {
   padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
   font-size: 14px;
   cursor: pointer;
+  background: var(--color-surface);
+  color: var(--color-ink);
 }
 
 .round-controls {
@@ -175,8 +204,8 @@
 .btn-expand,
 .btn-collapse {
   padding: 10px 16px;
-  border: none;
-  border-radius: 6px;
+  border: 1px solid transparent;
+  border-radius: 999px;
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
@@ -188,21 +217,22 @@
 }
 
 .btn-expand {
-  background: #3498db;
+  background: var(--color-ink);
   color: white;
 }
 
 .btn-expand:hover {
-  background: #2980b9;
+  filter: brightness(0.96);
 }
 
 .btn-collapse {
-  background: #95a5a6;
-  color: white;
+  background: transparent;
+  color: var(--color-ink);
+  border-color: var(--color-border);
 }
 
 .btn-collapse:hover {
-  background: #7f8c8d;
+  border-color: var(--color-ink);
 }
 
 .rounds-container {
@@ -212,21 +242,21 @@
 }
 
 .round-section {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
   overflow: hidden;
   transition: all 0.3s ease;
-  border-left: 5px solid #3498db;
+  border-left: 5px solid var(--color-accent);
 }
 
 .round-section.completed {
-  border-left-color: #27ae60;
+  border-left-color: var(--color-accent-strong);
   opacity: 0.95;
 }
 
 .round-section.in-progress {
-  border-left-color: #f39c12;
+  border-left-color: var(--color-clay);
 }
 
 .round-header {
@@ -234,7 +264,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 25px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(241, 245, 239, 0.96) 100%);
   cursor: pointer;
   transition: all 0.2s ease;
   user-select: none;
@@ -247,11 +277,11 @@
 }
 
 .round-header:hover {
-  background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+  background: linear-gradient(135deg, rgba(247, 246, 241, 0.98) 0%, rgba(235, 240, 233, 0.98) 100%);
 }
 
 .round-header:active {
-  background: linear-gradient(135deg, #dfe3e7 0%, #d0d6dc 100%);
+  background: linear-gradient(135deg, rgba(236, 242, 235, 0.98) 0%, rgba(228, 234, 227, 0.98) 100%);
 }
 
 .round-header-left {
@@ -263,7 +293,7 @@
 
 .round-toggle {
   font-size: 16px;
-  color: #3498db;
+  color: var(--color-accent);
   font-weight: 700;
   transition: transform 0.3s ease;
   min-width: 20px;
@@ -271,19 +301,19 @@
 
 .round-title {
   margin: 0;
-  color: #2c3e50;
+  color: var(--color-ink);
   font-size: 20px;
   font-weight: 700;
 }
 
 .round-time {
   font-size: 16px;
-  color: #7f8c8d;
+  color: var(--color-muted);
   font-weight: 600;
   padding: 4px 12px;
-  background: white;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: var(--color-surface);
+  border-radius: 999px;
+  box-shadow: var(--shadow-soft);
 }
 
 .round-header-right {
@@ -294,12 +324,12 @@
 
 .round-progress {
   font-size: 14px;
-  color: #555;
+  color: var(--color-muted);
   font-weight: 600;
   padding: 6px 12px;
-  background: white;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: var(--color-surface);
+  border-radius: 999px;
+  box-shadow: var(--shadow-soft);
 }
 
 .round-badge {
@@ -312,23 +342,23 @@
 }
 
 .completed-badge {
-  background: #d5f4e6;
-  color: #27ae60;
+  background: rgba(47, 143, 95, 0.16);
+  color: var(--color-accent-strong);
 }
 
 .progress-badge {
-  background: #fef5e7;
-  color: #f39c12;
+  background: rgba(213, 133, 92, 0.18);
+  color: #8a4b1f;
 }
 
 .pending-badge {
-  background: #e8f4f8;
-  color: #3498db;
+  background: rgba(47, 143, 95, 0.08);
+  color: var(--color-accent-strong);
 }
 
 .round-matches {
   padding: 25px;
-  background: #f8f9fa;
+  background: var(--color-surface-muted);
   animation: slideDown 0.3s ease;
 }
 
@@ -341,15 +371,15 @@
 .bench-section {
   margin-top: 20px;
   padding: 15px;
-  background: white;
-  border-radius: 8px;
-  border-left: 4px solid #f39c12;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--color-clay);
+  box-shadow: var(--shadow-soft);
 }
 
 .bench-title {
   margin: 0 0 10px 0;
-  color: #856404;
+  color: #8a4b1f;
   font-size: 16px;
   font-weight: 600;
 }
@@ -362,26 +392,26 @@
 
 .bench-player {
   padding: 6px 12px;
-  background: #fff3cd;
-  border: 1px solid #ffc107;
+  background: var(--color-clay-soft);
+  border: 1px solid var(--color-clay);
   border-radius: 20px;
   font-size: 14px;
   font-weight: 500;
-  color: #856404;
+  color: #8a4b1f;
   white-space: nowrap;
 }
 
 .no-matches {
   text-align: center;
   padding: 60px 20px;
-  color: #95a5a6;
+  color: var(--color-muted);
   font-size: 18px;
 }
 
 .setup-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(18, 25, 21, 0.65);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -390,12 +420,13 @@
 }
 
 .setup-modal {
-  background: white;
-  border-radius: 12px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
   padding: 20px;
   max-width: 420px;
   width: 100%;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-border);
 }
 
 .setup-modal h3 {
@@ -472,6 +503,16 @@
   }
 }
 
+@media (max-width: 900px) {
+  .tournament-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .tournament-summary {
+    order: -1;
+  }
+}
+
 @media (max-width: 600px) {
   .tournament-view {
     padding: 16px 12px 24px;
@@ -486,7 +527,7 @@
     text-align: left;
   }
 
-  .header-actions {
+  .tournament-header .header-actions {
     width: 100%;
     flex-direction: column;
   }
@@ -550,7 +591,7 @@
 
 @media (hover: none) and (pointer: coarse) {
   .round-header:hover {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(241, 245, 239, 0.96) 100%);
   }
 
   .round-header {

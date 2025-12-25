@@ -50,6 +50,14 @@ export interface TournamentConfig {
   allowBypass: boolean; // show popup if impossible to meet constraints
 }
 
+export type WarningId = 'fairness' | 'doublesMinPlayers' | 'oddPlayers' | 'legacy';
+
+export interface WarningMessage {
+  id: WarningId;
+  values?: Record<string, string | number>;
+  message?: string;
+}
+
 export interface PlayerStats {
   player: Player;
   matchesPlayed: number;

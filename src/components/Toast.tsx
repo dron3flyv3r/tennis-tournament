@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useI18n } from '../i18n';
 import './Toast.css';
 
 export interface ToastProps {
@@ -9,6 +10,7 @@ export interface ToastProps {
 }
 
 const Toast: React.FC<ToastProps> = ({ message, type = 'info', duration = 3000, onClose }) => {
+  const { t } = useI18n();
   useEffect(() => {
     if (duration > 0) {
       const timer = setTimeout(() => {
@@ -29,7 +31,7 @@ const Toast: React.FC<ToastProps> = ({ message, type = 'info', duration = 3000, 
     <div className={`toast toast-${type}`}>
       <span className="toast-icon">{icons[type]}</span>
       <span className="toast-message">{message}</span>
-      <button className="toast-close" onClick={onClose} aria-label="Close">
+      <button className="toast-close" onClick={onClose} aria-label={t('common.close')}>
         ✕
       </button>
     </div>

@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import ConfigPanel from './components/ConfigPanel';
 import TournamentView from './components/TournamentView';
 import { ToastProvider, useToast } from './components/ToastContext';
-import type { Player, TournamentConfig, Match } from './types';
+import type { Player, TournamentConfig, Match, WarningMessage } from './types';
 import { generateMatches } from './tournamentUtils';
 import {
   saveTournamentState,
@@ -10,30 +10,11 @@ import {
   clearTournamentState,
   hasSavedTournamentState,
 } from './cookieUtils';
+import { I18nProvider, useI18n } from './i18n';
 import './App.css';
 
-const DEFAULT_CONFIG: TournamentConfig = {
-  tournamentName: 'Tennis Tournament',
-  gameType: 'singles',
-  doublesPartnerMode: 'fixed',
-  scoringMode: 'sets',
-  courts: ['Court 1', 'Court 2'],
-  startTime: '09:00',
-  matchDuration: 60,
-  breakDuration: 0,
-  scheduledBreaks: [],
-  enforceNonRepeatingMatches: true,
-  enforceFairMatches: true,
-  allowBypass: true,
-};
-
-const DEFAULT_PLAYERS: Player[] = [
-  { id: '1', name: 'Player 1', skillLevel: 5 },
-  { id: '2', name: 'Player 2', skillLevel: 5 },
-];
-
 interface WarningDialogState {
-  warnings: string[];
+  warnings: WarningMessage[];
   matches: Match[];
   config: TournamentConfig;
   players: Player[];
@@ -42,12 +23,37 @@ interface WarningDialogState {
 
 function AppContent() {
   const { showToast } = useToast();
+  const { t } = useI18n();
+  const createDefaultConfig = useCallback(
+    (): TournamentConfig => ({
+      tournamentName: t('defaults.tournamentName'),
+      gameType: 'singles',
+      doublesPartnerMode: 'fixed',
+      scoringMode: 'sets',
+      courts: [t('defaults.court', { number: 1 }), t('defaults.court', { number: 2 })],
+      startTime: '09:00',
+      matchDuration: 60,
+      breakDuration: 0,
+      scheduledBreaks: [],
+      enforceNonRepeatingMatches: true,
+      enforceFairMatches: true,
+      allowBypass: true,
+    }),
+    [t]
+  );
+  const createDefaultPlayers = useCallback(
+    (): Player[] => [
+      { id: '1', name: t('defaults.player', { number: 1 }), skillLevel: 5 },
+      { id: '2', name: t('defaults.player', { number: 2 }), skillLevel: 5 },
+    ],
+    [t]
+  );
   const [tournamentStarted, setTournamentStarted] = useState(false);
   const [editingSetup, setEditingSetup] = useState(false);
   const [matches, setMatches] = useState<Match[]>([]);
-  const [players, setPlayers] = useState<Player[]>(DEFAULT_PLAYERS);
-  const [config, setConfig] = useState<TournamentConfig>(DEFAULT_CONFIG);
-  const [warnings, setWarnings] = useState<string[]>([]);
+  const [players, setPlayers] = useState<Player[]>(() => createDefaultPlayers());
+  const [config, setConfig] = useState<TournamentConfig>(() => createDefaultConfig());
+  const [warnings, setWarnings] = useState<WarningMessage[]>([]);
   const [showLoadPrompt, setShowLoadPrompt] = useState(false);
   const [pendingWarning, setPendingWarning] = useState<WarningDialogState | null>(null);
 
@@ -71,9 +77,9 @@ function AppContent() {
         warnings,
         tournamentStarted,
       });
-      showToast('Tournament saved', 'success', 1500);
+      showToast(t('app.toast.saved'), 'success', 1500);
     }
-  }, [tournamentStarted, config, players, matches, warnings, showToast]);
+  }, [tournamentStarted, config, players, matches, warnings, showToast, t]);
 
   const handleLoadSavedTournament = () => {
     const savedState = loadTournamentState();
@@ -89,8 +95,8 @@ function AppContent() {
   };
 
   const resetToDefaults = () => {
-    setConfig(DEFAULT_CONFIG);
-    setPlayers(DEFAULT_PLAYERS);
+    setConfig(createDefaultConfig());
+    setPlayers(createDefaultPlayers());
     setMatches([]);
     setWarnings([]);
   };
@@ -118,7 +124,7 @@ function AppContent() {
     newConfig: TournamentConfig,
     newPlayers: Player[],
     newMatches: Match[],
-    newWarnings: string[]
+    newWarnings: WarningMessage[]
   ) => {
     setMatches(newMatches);
     setPlayers(newPlayers);
@@ -180,7 +186,7 @@ function AppContent() {
     setMatches(syncMatchesWithPlayers(matches, updatedPlayers));
     setEditingSetup(false);
     setTournamentStarted(true);
-    showToast('Setup updated — matches refreshed with new details', 'success');
+    showToast(t('app.toast.setupUpdated'), 'success');
   };
 
   const handleCancelEdit = () => {
@@ -199,14 +205,14 @@ function AppContent() {
       <div className="app">
         <div className="load-prompt-overlay">
           <div className="load-prompt-modal">
-            <h2>🎾 Welcome Back!</h2>
-            <p>We found a saved tournament. Would you like to continue where you left off?</p>
+            <h2>{t('app.loadPrompt.title')}</h2>
+            <p>{t('app.loadPrompt.message')}</p>
             <div className="load-prompt-actions">
               <button onClick={handleStartFresh} className="btn-start-fresh">
-                Start Fresh
+                {t('app.loadPrompt.startFresh')}
               </button>
               <button onClick={handleLoadSavedTournament} className="btn-load-saved">
-                Continue Tournament
+                {t('app.loadPrompt.continue')}
               </button>
             </div>
           </div>
@@ -243,25 +249,29 @@ function AppContent() {
       {pendingWarning && (
         <div className="warning-overlay">
           <div className="warning-modal">
-            <h3>⚠️ Generation Warnings</h3>
+            <h3>{t('app.warning.title')}</h3>
             <ul className="warning-list">
               {pendingWarning.warnings.map((warning, idx) => (
-                <li key={idx}>{warning}</li>
+                <li key={idx}>
+                  {warning.id === 'legacy'
+                    ? warning.message ?? ''
+                    : t(`warnings.${warning.id}`, warning.values)}
+                </li>
               ))}
             </ul>
             <div className="warning-actions">
               <button className="btn-secondary" onClick={handleCloseWarning}>
-                Adjust Settings
+                {t('app.warning.adjust')}
               </button>
               {pendingWarning.allowProceed && (
                 <button className="btn-primary" onClick={handleConfirmWarning}>
-                  Regenerate Anyway
+                  {t('app.warning.regenerate')}
                 </button>
               )}
             </div>
             {!pendingWarning.allowProceed && (
               <p className="warning-note">
-                Bypass is disabled. Please adjust courts, players, or timing to continue.
+                {t('app.warning.bypassDisabled')}
               </p>
             )}
           </div>
@@ -273,9 +283,11 @@ function AppContent() {
 
 function App() {
   return (
-    <ToastProvider>
-      <AppContent />
-    </ToastProvider>
+    <I18nProvider>
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
+    </I18nProvider>
   );
 }
 

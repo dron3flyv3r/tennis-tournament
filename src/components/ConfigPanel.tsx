@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { Player, ScheduledBreak, TournamentConfig } from '../types';
 import { useToast } from './ToastContext';
+import { useI18n } from '../i18n';
+import LanguageToggle from './LanguageToggle';
+import SetupSummary from './SetupSummary';
 import './ConfigPanel.css';
 
 type StepId = 'basics' | 'courts' | 'players' | 'review';
@@ -20,13 +23,6 @@ interface ConfigPanelProps {
   onCancelEdit?: () => void;
 }
 
-const steps: Step[] = [
-  { id: 'basics', label: 'Basics', description: 'Tournament details and pacing' },
-  { id: 'courts', label: 'Courts & Breaks', description: 'Where and when matches run' },
-  { id: 'players', label: 'Players', description: 'Rosters and skill levels' },
-  { id: 'review', label: 'Review', description: 'Confirm settings before generating' },
-];
-
 const ConfigPanel: React.FC<ConfigPanelProps> = ({
   initialConfig,
   initialPlayers,
@@ -36,6 +32,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
   onCancelEdit,
 }) => {
   const { showToast } = useToast();
+  const { t } = useI18n();
   const [config, setConfig] = useState<TournamentConfig>(initialConfig);
   const [players, setPlayers] = useState<Player[]>(initialPlayers);
   const [newPlayerName, setNewPlayerName] = useState('');
@@ -52,6 +49,16 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
     setConfig(initialConfig);
     setPlayers(initialPlayers);
   }, [initialConfig, initialPlayers]);
+
+  const steps: Step[] = useMemo(
+    () => [
+      { id: 'basics', label: t('steps.basics.label'), description: t('steps.basics.description') },
+      { id: 'courts', label: t('steps.courts.label'), description: t('steps.courts.description') },
+      { id: 'players', label: t('steps.players.label'), description: t('steps.players.description') },
+      { id: 'review', label: t('steps.review.label'), description: t('steps.review.description') },
+    ],
+    [t]
+  );
 
   const duplicateNames = useMemo(() => {
     const seen = new Map<string, number>();
@@ -105,13 +112,13 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
   const validateBasics = () => {
     const errors: Record<string, string> = {};
     if (!config.tournamentName.trim()) {
-      errors.tournamentName = 'Give your tournament a name.';
+      errors.tournamentName = t('errors.tournamentName');
     }
     if (config.matchDuration < 15) {
-      errors.matchDuration = 'Match duration must be at least 15 minutes.';
+      errors.matchDuration = t('errors.matchDurationMin');
     }
     if (config.breakDuration < 0) {
-      errors.breakDuration = 'Break duration cannot be negative.';
+      errors.breakDuration = t('errors.breakDurationMin');
     }
     return errors;
   };
@@ -119,7 +126,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
   const validateCourts = () => {
     const errors: Record<string, string> = {};
     if (config.courts.length === 0) {
-      errors.courts = 'Add at least one court to schedule matches.';
+      errors.courts = t('errors.courtsRequired');
     }
     return errors;
   };
@@ -127,17 +134,17 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
   const validatePlayers = () => {
     const errors: Record<string, string> = {};
     if (players.length < 2) {
-      errors.players = 'Add at least 2 players to start.';
+      errors.players = t('errors.playersMin');
     }
     if (config.gameType === 'doubles' && players.length < 4) {
-      errors.players = 'Doubles needs at least 4 players.';
+      errors.players = t('errors.playersMinDoubles');
     }
     players.forEach(player => {
       const key = player.name.trim().toLowerCase();
       if (!player.name.trim()) {
-        errors[`player-${player.id}`] = 'Name cannot be empty.';
+        errors[`player-${player.id}`] = t('errors.playerNameRequired');
       } else if (duplicateNames.has(key)) {
-        errors[`player-${player.id}`] = 'Duplicate name — choose a unique one.';
+        errors[`player-${player.id}`] = t('errors.playerNameDuplicate');
       }
     });
     return errors;
@@ -160,7 +167,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
     const errors = validateStep(stepId);
     if (Object.keys(errors).length > 0) {
       updateErrors(errors);
-      showToast('Please fix the highlighted items.', 'warning');
+      showToast(t('config.toast.fixItems'), 'warning');
       return false;
     }
     clearStepErrors(stepId);
@@ -224,7 +231,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
 
   const handleAddCourt = () => {
     if (!courtInput.trim()) {
-      updateErrors({ courts: 'Enter a court name to add.' });
+      updateErrors({ courts: t('errors.courtNameRequired') });
       return;
     }
     setConfig(prev => ({ ...prev, courts: [...prev.courts, courtInput.trim()] }));
@@ -259,12 +266,12 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
 
   const handleAddPlayer = () => {
     if (!newPlayerName.trim()) {
-      updateErrors({ 'player-new': 'Enter a player name to add.' });
+      updateErrors({ 'player-new': t('errors.newPlayerNameRequired') });
       return;
     }
     const key = newPlayerName.trim().toLowerCase();
     if (duplicateNames.has(key)) {
-      const message = `"${newPlayerName.trim()}" already exists.`;
+      const message = t('errors.playerAlreadyExists', { name: newPlayerName.trim() });
       updateErrors({ 'player-new': message });
       const existing = players.find(
         p => p.name.trim().toLowerCase() === key
@@ -294,7 +301,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
       const trimmed = value.trim();
       const key = trimmed.toLowerCase();
       if (duplicateNames.has(key) && players.some(p => p.id !== id && p.name.trim().toLowerCase() === key)) {
-        updateErrors({ [`player-${id}`]: 'Duplicate name — choose a unique one.' });
+        updateErrors({ [`player-${id}`]: t('errors.playerNameDuplicate') });
       }
     }
 
@@ -321,7 +328,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
       tournamentName: 'Summer Championship 2024',
       courts: ['Center Court', 'Court 1', 'Court 2'],
     }));
-    showToast('Sample data loaded. Adjust anything you like!', 'success');
+    showToast(t('toast.sampleLoaded'), 'success');
   };
 
   const renderStepContent = () => {
@@ -331,7 +338,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
       return (
         <>
           <div className="form-group">
-            <label>Tournament Name</label>
+            <label>{t('config.basics.tournamentName')}</label>
             <input
               type="text"
               value={config.tournamentName}
@@ -345,21 +352,21 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
 
           <div className="grid-2">
             <div className="form-group">
-              <label>Game Type</label>
+              <label>{t('config.basics.gameType')}</label>
               <select
                 value={config.gameType}
                 onChange={e =>
                   setConfig({ ...config, gameType: e.target.value as 'singles' | 'doubles' })
                 }
               >
-                <option value="singles">Singles</option>
-                <option value="doubles">Doubles</option>
+                <option value="singles">{t('config.basics.singles')}</option>
+                <option value="doubles">{t('config.basics.doubles')}</option>
               </select>
             </div>
 
             {config.gameType === 'doubles' && (
               <div className="form-group">
-                <label>Doubles Partner Mode</label>
+                <label>{t('config.basics.doublesPartnerMode')}</label>
                 <select
                   value={config.doublesPartnerMode}
                   onChange={e =>
@@ -369,8 +376,8 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
                     })
                   }
                 >
-                  <option value="fixed">Fixed Partners</option>
-                  <option value="random-non-repeating">Random Non-Repeating</option>
+                  <option value="fixed">{t('config.basics.doublesFixed')}</option>
+                  <option value="random-non-repeating">{t('config.basics.doublesRandom')}</option>
                 </select>
               </div>
             )}
@@ -378,25 +385,25 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
 
           <div className="grid-2">
             <div className="form-group">
-              <label>Scoring Mode</label>
+              <label>{t('config.basics.scoringMode')}</label>
               <select
                 value={config.scoringMode}
                 onChange={e =>
                   setConfig({ ...config, scoringMode: e.target.value as 'sets' | 'simple' })
                 }
               >
-                <option value="sets">Sets-Based (Traditional Tennis)</option>
-                <option value="simple">Simple Score (Single Number)</option>
+                <option value="sets">{t('config.basics.scoringSets')}</option>
+                <option value="simple">{t('config.basics.scoringSimple')}</option>
               </select>
               <p className="field-description">
                 {config.scoringMode === 'sets'
-                  ? 'Track games and sets (e.g., 6-4, 6-3)'
-                  : 'Track just the final score (e.g., 15-12)'}
+                  ? t('config.basics.scoringSetsDesc')
+                  : t('config.basics.scoringSimpleDesc')}
               </p>
             </div>
 
             <div className="form-group">
-              <label>Start Time</label>
+              <label>{t('config.basics.startTime')}</label>
               <input
                 type="time"
                 value={config.startTime}
@@ -407,7 +414,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
 
           <div className="grid-3">
             <div className="form-group">
-              <label>Match Duration (minutes)</label>
+              <label>{t('config.basics.matchDuration')}</label>
               <input
                 type="number"
                 min="15"
@@ -425,7 +432,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
             </div>
 
             <div className="form-group">
-              <label>Break Between Matches (minutes)</label>
+              <label>{t('config.basics.breakDuration')}</label>
               <input
                 type="number"
                 min="0"
@@ -449,10 +456,10 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
                   checked={config.allowBypass}
                   onChange={e => setConfig({ ...config, allowBypass: e.target.checked })}
                 />
-                Allow bypass if constraints cannot be met
+                {t('config.basics.allowBypass')}
               </label>
               <p className="field-description">
-                When enabled, you can still generate even if scheduling warnings appear.
+                {t('config.basics.allowBypassDesc')}
               </p>
             </div>
           </div>
@@ -467,7 +474,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
                     setConfig({ ...config, enforceNonRepeatingMatches: e.target.checked })
                   }
                 />
-                Enforce non-repeating matches
+                {t('config.basics.enforceNonRepeating')}
               </label>
             </div>
             <div className="form-group checkbox-group">
@@ -477,7 +484,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
                   checked={config.enforceFairMatches}
                   onChange={e => setConfig({ ...config, enforceFairMatches: e.target.checked })}
                 />
-                Enforce fair matches (everyone plays the same number)
+                {t('config.basics.enforceFairMatches')}
               </label>
             </div>
           </div>
@@ -489,7 +496,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
       return (
         <>
           <div className="form-group">
-            <label>Courts</label>
+            <label>{t('config.courts.title')}</label>
             <div className="pill-list">
               {config.courts.map((court, idx) => (
                 <div key={court + idx} className="pill">
@@ -509,7 +516,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
             <div className="inline-form">
               <input
                 type="text"
-                placeholder="Court name"
+                placeholder={t('config.courts.placeholder')}
                 value={courtInput}
                 onChange={e => setCourtInput(e.target.value)}
                 onKeyDown={e => {
@@ -520,33 +527,33 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
                 }}
               />
               <button type="button" className="btn-secondary" onClick={handleAddCourt}>
-                Add Court
+                {t('config.courts.addCourt')}
               </button>
             </div>
           </div>
 
           <div className="form-group">
             <div className="label-row">
-              <label>Scheduled Breaks (Optional)</label>
-              <span className="label-hint">Create lunch / rest windows</span>
+              <label>{t('config.courts.breaksTitle')}</label>
+              <span className="label-hint">{t('config.courts.breaksHint')}</span>
             </div>
             <div className="breaks-list">
               {config.scheduledBreaks.map(scheduledBreak => (
                 <div key={scheduledBreak.id} className="break-item">
                   <span>
-                    ⏸️ {scheduledBreak.time} — {scheduledBreak.duration} min
+                    {scheduledBreak.time} — {scheduledBreak.duration} {t('common.minutesShort')}
                   </span>
                   <button
                     type="button"
                     onClick={() => handleRemoveScheduledBreak(scheduledBreak.id)}
                     className="btn-remove"
                   >
-                    Remove
+                    {t('common.remove')}
                   </button>
                 </div>
               ))}
               {config.scheduledBreaks.length === 0 && (
-                <div className="empty-note">No scheduled breaks yet.</div>
+                <div className="empty-note">{t('config.courts.noBreaks')}</div>
               )}
             </div>
             <div className="inline-form stack-on-mobile">
@@ -555,13 +562,13 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
                 type="number"
                 min="15"
                 max="120"
-                placeholder="Duration (min)"
+                placeholder={t('config.courts.breakDurationPlaceholder')}
                 value={breakDuration}
                 onChange={e => setBreakDuration(parseInt(e.target.value) || 30)}
                 className="break-duration-input"
               />
               <button type="button" onClick={handleAddScheduledBreak} className="btn-secondary">
-                Add Break
+                {t('config.courts.addBreak')}
               </button>
             </div>
           </div>
@@ -574,12 +581,12 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
       return (
         <>
           <div className="label-row">
-            <h3 className="section-subtitle">Players</h3>
-            <span className="label-hint">Tap a name to edit</span>
+            <h3 className="section-subtitle">{t('config.players.title')}</h3>
+            <span className="label-hint">{t('config.players.tapToEdit')}</span>
           </div>
           {isFixedDoubles && (
             <div className="info-banner">
-              Players are paired sequentially (1-2, 3-4, etc.) for fixed doubles teams.
+              {t('config.players.fixedHint')}
             </div>
           )}
           {fieldErrors.players && <div className="inline-banner error">{fieldErrors.players}</div>}
@@ -593,25 +600,27 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
 
                   return (
                     <div key={`pair-${pairIndex}`} className="doubles-pair-container">
-                      <div className="pair-label">Team {pairIndex + 1}</div>
+                      <div className="pair-label">
+                        {t('config.players.teamLabel', { number: pairIndex + 1 })}
+                      </div>
                       <div className="pair-players">
                         {[player1, player2].filter(Boolean).map(player => (
                           <div key={player!.id} className="player-item-in-pair">
                             <input
-                              ref={el => (playerInputRefs.current[player!.id] = el)}
+                              ref={el => { playerInputRefs.current[player!.id] = el; }}
                               type="text"
                               value={player!.name}
                               onChange={e => handleUpdatePlayer(player!.id, 'name', e.target.value)}
                               className={`player-name-input ${
                                 fieldErrors[`player-${player!.id}`] ? 'input-error' : ''
                               }`}
-                              placeholder="Player name"
+                              placeholder={t('config.players.playerNamePlaceholder')}
                             />
                             {fieldErrors[`player-${player!.id}`] && (
                               <p className="field-error">{fieldErrors[`player-${player!.id}`]}</p>
                             )}
                             <div className="skill-level">
-                              <label>Skill:</label>
+                              <label>{t('config.players.skill')}:</label>
                               <input
                                 type="number"
                                 min="1"
@@ -634,7 +643,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
                               onClick={() => handleRemovePlayer(player!.id)}
                               className="btn-remove"
                             >
-                              Remove
+                              {t('common.remove')}
                             </button>
                           </div>
                         ))}
@@ -650,16 +659,16 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
                   className={`player-item ${fieldErrors[`player-${player.id}`] ? 'has-error' : ''}`}
                 >
                   <input
-                    ref={el => (playerInputRefs.current[player.id] = el)}
+                    ref={el => { playerInputRefs.current[player.id] = el; }}
                     type="text"
                     value={player.name}
                     onChange={e => handleUpdatePlayer(player.id, 'name', e.target.value)}
                     className="player-name-input"
-                    placeholder="Player name"
+                    placeholder={t('config.players.playerNamePlaceholder')}
                     aria-invalid={Boolean(fieldErrors[`player-${player.id}`])}
                   />
                   <div className="skill-level">
-                    <label>Skill:</label>
+                    <label>{t('config.players.skill')}:</label>
                     <input
                       type="number"
                       min="1"
@@ -674,7 +683,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
                     />
                   </div>
                   <button type="button" onClick={() => handleRemovePlayer(player.id)} className="btn-remove">
-                    Remove
+                    {t('common.remove')}
                   </button>
                   {fieldErrors[`player-${player.id}`] && (
                     <p className="field-error">{fieldErrors[`player-${player.id}`]}</p>
@@ -686,7 +695,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
           <div className="add-player">
             <input
               type="text"
-              placeholder="Player name"
+              placeholder={t('config.players.playerNamePlaceholder')}
               value={newPlayerName}
               onChange={e => setNewPlayerName(e.target.value)}
               onKeyDown={e => {
@@ -701,7 +710,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
               type="number"
               min="1"
               max="10"
-              placeholder="Skill"
+              placeholder={t('config.players.skill')}
               value={newPlayerSkill}
               onChange={e => setNewPlayerSkill(parseInt(e.target.value) || 5)}
               className="skill-input"
@@ -709,7 +718,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
               pattern="[0-9]*"
             />
             <button type="button" onClick={handleAddPlayer} className="btn-secondary">
-              Add Player
+              {t('config.players.addPlayer')}
             </button>
           </div>
           {fieldErrors['player-new'] && <p className="field-error">{fieldErrors['player-new']}</p>}
@@ -720,47 +729,61 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
     return (
       <div className="review-grid">
         <div className="review-card">
-          <h3>Basics</h3>
+          <h3>{t('config.review.basics')}</h3>
           <ul>
             <li>
-              <strong>Name:</strong> {config.tournamentName}
+              <strong>{t('config.review.name')}:</strong> {config.tournamentName}
             </li>
             <li>
-              <strong>Game:</strong> {config.gameType === 'doubles' ? 'Doubles' : 'Singles'}
-              {config.gameType === 'doubles' ? ` (${config.doublesPartnerMode})` : ''}
+              <strong>{t('config.review.game')}:</strong>{' '}
+              {config.gameType === 'doubles' ? t('config.basics.doubles') : t('config.basics.singles')}
+              {config.gameType === 'doubles'
+                ? ` (${config.doublesPartnerMode === 'fixed'
+                  ? t('config.basics.doublesFixed')
+                  : t('config.basics.doublesRandom')})`
+                : ''}
             </li>
             <li>
-              <strong>Scoring:</strong> {config.scoringMode === 'sets' ? 'Sets' : 'Simple'}
+              <strong>{t('config.review.scoring')}:</strong>{' '}
+              {config.scoringMode === 'sets'
+                ? t('config.basics.scoringSets')
+                : t('config.basics.scoringSimple')}
             </li>
             <li>
-              <strong>Start Time:</strong> {config.startTime}
+              <strong>{t('config.review.startTime')}:</strong> {config.startTime}
             </li>
             <li>
-              <strong>Match Duration:</strong> {config.matchDuration} min
+              <strong>{t('config.review.matchDuration')}:</strong>{' '}
+              {t('common.minutes', { count: config.matchDuration })}
             </li>
             <li>
-              <strong>Between Matches:</strong> {config.breakDuration} min
+              <strong>{t('config.review.breakDuration')}:</strong>{' '}
+              {t('common.minutes', { count: config.breakDuration })}
             </li>
           </ul>
         </div>
 
         <div className="review-card">
-          <h3>Courts & Breaks</h3>
+          <h3>{t('config.review.courts')}</h3>
           <ul>
             <li>
-              <strong>Courts:</strong> {config.courts.join(', ')}
+              <strong>{t('config.review.courtsLabel')}:</strong> {config.courts.join(', ')}
             </li>
             <li>
-              <strong>Scheduled Breaks:</strong>{' '}
+              <strong>{t('config.review.scheduledBreaks')}:</strong>{' '}
               {config.scheduledBreaks.length === 0
-                ? 'None'
-                : config.scheduledBreaks.map(b => `${b.time} (${b.duration}m)`).join(', ')}
+                ? t('config.review.none')
+                : config.scheduledBreaks
+                    .map(b => `${b.time} (${b.duration}${t('common.minutesShort')})`)
+                    .join(', ')}
             </li>
           </ul>
         </div>
 
         <div className="review-card">
-          <h3>Players ({players.length})</h3>
+          <h3>
+            {t('config.review.players')} ({players.length})
+          </h3>
           <div className="review-players">
             {players.map(player => (
               <span key={player.id} className="chip">
@@ -770,7 +793,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
           </div>
           {config.gameType === 'doubles' && config.doublesPartnerMode === 'fixed' && (
             <p className="field-description">
-              Fixed partners will be paired sequentially (1-2, 3-4, ...).
+              {t('config.review.fixedPartnersNote')}
             </p>
           )}
         </div>
@@ -780,6 +803,14 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
 
   const renderProgress = (placement: 'top' | 'bottom') => (
     <div className={`wizard-progress ${placement}`}>
+      <div className="wizard-progress-meta">
+        <span className="wizard-progress-step">
+          {t('config.progress.step', { current: currentStep + 1, total: steps.length })}
+        </span>
+        <span className="wizard-progress-label">
+          {steps[currentStep].label}
+        </span>
+      </div>
       <div className="wizard-steps">
         {steps.map((step, index) => {
           const active = index === currentStep;
@@ -801,7 +832,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
       <div
         className="wizard-progress-bar"
         style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
-        aria-label={`Step ${currentStep + 1} of ${steps.length}`}
+        aria-label={t('config.progress.step', { current: currentStep + 1, total: steps.length })}
       />
     </div>
   );
@@ -814,23 +845,23 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
         onClick={handleBack}
         disabled={currentStep === 0}
       >
-        Back
+        {t('common.back')}
       </button>
       <div className="wizard-nav-actions">
         {currentStep < steps.length - 1 && (
           <button type="button" className="btn-primary" onClick={handleNext}>
-            Next
+            {t('common.next')}
           </button>
         )}
         {currentStep === steps.length - 1 && (
           <>
             {onSaveConfigOnly && (
               <button type="button" className="btn-secondary" onClick={handleSaveWithoutRegenerate}>
-                Save without regenerating
+                {t('config.nav.saveWithout')}
               </button>
             )}
             <button type="button" className="btn-primary" onClick={handleGenerateTournament}>
-              Generate Tournament
+              {t('config.nav.generate')}
             </button>
           </>
         )}
@@ -841,14 +872,15 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
   return (
     <div className="config-panel">
       <div className="config-panel-header">
-        <h1>{mode === 'edit' ? 'Edit Setup' : '🎾 Tennis Tournament Generator'}</h1>
+        <h1>{mode === 'edit' ? t('config.title.edit') : t('config.title.new')}</h1>
         <div className="header-actions">
+          <LanguageToggle />
           <button type="button" onClick={handleLoadSampleData} className="btn-sample-data">
-            🎯 Load Sample Data
+            {t('config.sampleData')}
           </button>
           {mode === 'edit' && onCancelEdit && (
             <button type="button" className="btn-tertiary" onClick={onCancelEdit}>
-              Return to Tournament
+              {t('config.returnToTournament')}
             </button>
           )}
         </div>
@@ -858,7 +890,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
 
       {bannerErrors.length > 0 && (
         <div className="inline-banner error">
-          <strong>Please resolve:</strong>
+          <strong>{t('config.errors.resolve')}</strong>
           <ul>
             {bannerErrors.map((error, idx) => (
               <li key={idx}>{error}</li>
@@ -867,18 +899,22 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
         </div>
       )}
 
-      <div className="config-section">
-        <div className="section-header">
-          <div>
-            <h2>{steps[currentStep].label}</h2>
-            <p className="section-description">{steps[currentStep].description}</p>
+      <div className="config-body">
+        <div className="config-section">
+          <div className="section-header">
+            <div>
+              <h2>{steps[currentStep].label}</h2>
+              <p className="section-description">{steps[currentStep].description}</p>
+            </div>
+            <div className="section-step-chip">
+              {t('config.progress.step', { current: currentStep + 1, total: steps.length })}
+            </div>
           </div>
-          <div className="section-step-chip">
-            Step {currentStep + 1} of {steps.length}
-          </div>
+
+          <div className="step-content">{renderStepContent()}</div>
         </div>
 
-        <div className="step-content">{renderStepContent()}</div>
+        <SetupSummary config={config} players={players} defaultOpen={false} />
       </div>
 
       {renderNavigation()}

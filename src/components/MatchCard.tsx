@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { Match, TournamentConfig, SetScore } from '../types';
+import { useI18n } from '../i18n';
 import './MatchCard.css';
 
 interface MatchCardProps {
@@ -9,6 +10,7 @@ interface MatchCardProps {
 }
 
 const MatchCard: React.FC<MatchCardProps> = ({ match, config, onUpdateMatch }) => {
+  const { t } = useI18n();
   const [isEditing, setIsEditing] = useState(false);
   
   // For sets mode
@@ -65,7 +67,7 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, config, onUpdateMatch }) =
 
     if (config.scoringMode === 'sets') {
       if (sets.length === 0) {
-        alert('Please add at least one set.');
+        alert(t('errors.addSet'));
         return;
       }
 
@@ -87,7 +89,7 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, config, onUpdateMatch }) =
       const score2 = parseInt(simpleScore2) || 0;
 
       if (score1 === 0 && score2 === 0) {
-        alert('Please enter a valid score.');
+        alert(t('errors.validScore'));
         return;
       }
 
@@ -126,12 +128,16 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, config, onUpdateMatch }) =
     <div className={`match-card ${match.completed ? 'completed' : 'pending'}`}>
       <div className="match-header">
         <div className="match-time-court">
-          <span className="match-time">🕐 {match.time}</span>
-          <span className="match-court">🎾 {match.court}</span>
+          <span className="match-time">
+            {t('match.timeLabel')}: {match.time}
+          </span>
+          <span className="match-court">
+            {t('match.courtLabel')}: {match.court}
+          </span>
         </div>
         {match.completed && match.score && (
           <div className="match-winner">
-            {match.score.team1Score > match.score.team2Score ? '👑 ' + team1Names : '👑 ' + team2Names}
+            {t('match.winnerLabel')}: {match.score.team1Score > match.score.team2Score ? team1Names : team2Names}
           </div>
         )}
       </div>
@@ -141,7 +147,7 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, config, onUpdateMatch }) =
           <span className="team-name">{team1Names}</span>
           {match.score && <span className="team-sets">{match.score.team1Score}</span>}
         </div>
-        <div className="vs">VS</div>
+        <div className="vs">{t('match.vs')}</div>
         <div className={`team ${match.completed && match.score && match.score.team2Score > match.score.team1Score ? 'winner' : ''}`}>
           <span className="team-name">{team2Names}</span>
           {match.score && <span className="team-sets">{match.score.team2Score}</span>}
@@ -153,7 +159,7 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, config, onUpdateMatch }) =
           <div className="sets-display">
             {match.score.sets.map((set, idx) => (
               <div key={idx} className="set-score">
-                Set {idx + 1}: {set.team1Games}-{set.team2Games}
+                {t('match.setLabel', { number: idx + 1 })}: {set.team1Games}-{set.team2Games}
               </div>
             ))}
           </div>
@@ -162,13 +168,13 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, config, onUpdateMatch }) =
 
       {isEditing && (
         <div className="match-score-editor" onKeyDown={handleKeyDown}>
-          <h4>Enter Score</h4>
+          <h4>{t('match.enterScore')}</h4>
           
           {config.scoringMode === 'sets' ? (
             <>
               {sets.map((set, idx) => (
                 <div key={idx} className="set-input">
-                  <span className="set-label">Set {idx + 1}:</span>
+                  <span className="set-label">{t('match.setLabel', { number: idx + 1 })}:</span>
                   <input
                     type="number"
                     min="0"
@@ -177,7 +183,7 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, config, onUpdateMatch }) =
                     onChange={(e) => handleSetGameChange(idx, 'team1', e.target.value)}
                     placeholder="0"
                     inputMode="numeric"
-                    aria-label={`${team1Names} games in set ${idx + 1}`}
+                    aria-label={t('match.gamesInSet', { team: team1Names, number: idx + 1 })}
                   />
                   <span>-</span>
                   <input
@@ -188,14 +194,14 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, config, onUpdateMatch }) =
                     onChange={(e) => handleSetGameChange(idx, 'team2', e.target.value)}
                     placeholder="0"
                     inputMode="numeric"
-                    aria-label={`${team2Names} games in set ${idx + 1}`}
+                    aria-label={t('match.gamesInSet', { team: team2Names, number: idx + 1 })}
                   />
                   {sets.length > 1 && (
                     <button
                       type="button"
                       onClick={() => handleRemoveSet(idx)}
                       className="btn-remove-set"
-                      aria-label={`Remove set ${idx + 1}`}
+                      aria-label={t('match.removeSet', { number: idx + 1 })}
                     >
                       ✕
                     </button>
@@ -204,18 +210,18 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, config, onUpdateMatch }) =
               ))}
               <div className="score-editor-actions">
                 <button type="button" onClick={handleAddSet} className="btn-add-set">
-                  + Add Set
+                  + {t('match.addSet')}
                 </button>
                 <div className="score-save-cancel">
                   <button type="button" onClick={handleSave} className="btn-save">
-                    Save Score
+                    {t('match.saveScore')}
                   </button>
                   <button type="button" onClick={handleCancel} className="btn-cancel">
-                    Cancel
+                    {t('match.cancel')}
                   </button>
                 </div>
               </div>
-              <p className="keyboard-hint">💡 Tip: Press Enter to save, ESC to cancel</p>
+              <p className="keyboard-hint">{t('match.tip')}</p>
             </>
           ) : (
             <>
@@ -229,7 +235,7 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, config, onUpdateMatch }) =
                     onChange={(e) => setSimpleScore1(e.target.value)}
                     placeholder="0"
                     inputMode="numeric"
-                    aria-label={`Score for ${team1Names}`}
+                    aria-label={t('match.scoreFor', { team: team1Names })}
                     autoFocus
                   />
                 </div>
@@ -242,21 +248,21 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, config, onUpdateMatch }) =
                     onChange={(e) => setSimpleScore2(e.target.value)}
                     placeholder="0"
                     inputMode="numeric"
-                    aria-label={`Score for ${team2Names}`}
+                    aria-label={t('match.scoreFor', { team: team2Names })}
                   />
                 </div>
               </div>
               <div className="score-editor-actions">
                 <div className="score-save-cancel">
                   <button type="button" onClick={handleSave} className="btn-save">
-                    Save Score
+                    {t('match.saveScore')}
                   </button>
                   <button type="button" onClick={handleCancel} className="btn-cancel">
-                    Cancel
+                    {t('match.cancel')}
                   </button>
                 </div>
               </div>
-              <p className="keyboard-hint">💡 Tip: Press Enter to save, ESC to cancel</p>
+              <p className="keyboard-hint">{t('match.tip')}</p>
             </>
           )}
         </div>
@@ -265,7 +271,7 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, config, onUpdateMatch }) =
       {!isEditing && (
         <div className="match-actions">
           <button type="button" onClick={handleStartEditing} className="btn-enter-score">
-            {match.completed ? 'Edit Score' : 'Enter Score'}
+            {match.completed ? t('match.editScore') : t('match.enterScore')}
           </button>
         </div>
       )}
