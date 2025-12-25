@@ -378,6 +378,38 @@
   font-size: 18px;
 }
 
+.setup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+}
+
+.setup-modal {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.setup-modal h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.setup-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
 @keyframes slideDown {
   from {
     opacity: 0;

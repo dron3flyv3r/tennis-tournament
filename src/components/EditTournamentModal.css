@@ -121,6 +121,11 @@
   background: #f8f9fa;
   border-radius: 6px;
   margin-bottom: 10px;
+  border: 1px solid transparent;
+}
+
+.player-edit-item.has-error {
+  border-color: #fca5a5;
 }
 
 .player-edit-item .player-name-input {
@@ -218,6 +223,10 @@
   border-radius: 8px;
   padding: 15px;
   background: #f8f9fa;
+}
+
+.match-edit-item.has-error {
+  border-color: #fca5a5;
 }
 
 .match-edit-header {
