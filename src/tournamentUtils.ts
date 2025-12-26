@@ -432,16 +432,43 @@ export function calculatePlayerStats(matches: Match[], players: Player[]): Playe
   return Array.from(statsMap.values());
 }
 
+const detectReportScoring = (
+  matches: Match[],
+  scoringMode?: TournamentConfig['scoringMode']
+): TournamentReport['scoring'] => {
+  const scoredMatches = matches.filter(m => m.completed && m.score);
+
+  if (scoredMatches.length === 0) {
+    return scoringMode === 'simple'
+      ? { mode: 'points', pointsSource: 'score' }
+      : { mode: 'sets', pointsSource: 'games' };
+  }
+
+  const hasMultiSet = scoredMatches.some(m => (m.score?.sets?.length ?? 0) > 1);
+  if (hasMultiSet) {
+    return { mode: 'sets', pointsSource: 'games' };
+  }
+
+  const hasAnySet = scoredMatches.some(m => (m.score?.sets?.length ?? 0) > 0);
+  if (hasAnySet) {
+    return { mode: 'points', pointsSource: 'games' };
+  }
+
+  return { mode: 'points', pointsSource: 'score' };
+};
+
 /**
  * Generate tournament report
  */
 export function generateReport(
   matches: Match[],
   players: Player[],
-  tournamentName: string
+  tournamentName: string,
+  scoringMode?: TournamentConfig['scoringMode']
 ): TournamentReport {
   const playerStats = calculatePlayerStats(matches, players);
   const completedMatches = matches.filter(m => m.completed);
+  const scoring = detectReportScoring(matches, scoringMode);
 
   // Find fun stats
   const mostWins = playerStats.reduce((max, stats) => 
@@ -485,6 +512,7 @@ export function generateReport(
     tournamentName,
     totalMatches: matches.length,
     completedMatches: completedMatches.length,
+    scoring,
     playerStats: playerStats.sort((a, b) => b.matchesWon - a.matchesWon),
     funStats: {
       mostWins,

@@ -11,6 +11,8 @@ interface TournamentReportProps {
 const TournamentReport: React.FC<TournamentReportProps> = ({ report, onBack }) => {
   const { t } = useI18n();
   const progressPercentage = (report.completedMatches / report.totalMatches) * 100;
+  const isPointsMode = report.scoring.mode === 'points';
+  const pointsFromGames = report.scoring.pointsSource === 'games';
 
   return (
     <div className="tournament-report">
@@ -36,6 +38,12 @@ const TournamentReport: React.FC<TournamentReportProps> = ({ report, onBack }) =
             <span className="summary-label">{t('report.completion')}</span>
             <span className="summary-value">{progressPercentage.toFixed(1)}%</span>
           </div>
+          <div className="summary-item">
+            <span className="summary-label">{t('report.scoring')}</span>
+            <span className="summary-value">
+              {isPointsMode ? t('report.scoringPoints') : t('report.scoringSets')}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -53,28 +61,35 @@ const TournamentReport: React.FC<TournamentReportProps> = ({ report, onBack }) =
                   <th>{t('report.won')}</th>
                   <th>{t('report.lost')}</th>
                   <th>{t('report.winRate')}</th>
-                  <th>{t('report.setsWL')}</th>
-                  <th>{t('report.gamesWL')}</th>
+                  <th>{isPointsMode ? t('report.pointsWL') : t('report.setsWL')}</th>
+                  {!isPointsMode && <th>{t('report.gamesWL')}</th>}
                 </tr>
               </thead>
               <tbody>
-                {report.playerStats.map((stats, idx) => (
-                  <tr key={stats.player.id}>
-                    <td className="rank-cell">
-                      {idx === 0 && stats.matchesWon > 0 ? '🥇' : idx === 1 && stats.matchesWon > 0 ? '🥈' : idx === 2 && stats.matchesWon > 0 ? '🥉' : idx + 1}
-                    </td>
-                    <td className="player-cell">{stats.player.name}</td>
-                    <td className="skill-cell">{stats.player.skillLevel || '-'}</td>
-                    <td>{stats.matchesPlayed}</td>
-                    <td className="win-cell">{stats.matchesWon}</td>
-                    <td className="loss-cell">{stats.matchesLost}</td>
-                    <td className="winrate-cell">
-                      {stats.matchesPlayed > 0 ? `${stats.winRate.toFixed(1)}%` : '-'}
-                    </td>
-                    <td>{stats.setsWon} / {stats.setsLost}</td>
-                    <td>{stats.gamesWon} / {stats.gamesLost}</td>
-                  </tr>
-                ))}
+                {report.playerStats.map((stats, idx) => {
+                  const pointsWon = pointsFromGames ? stats.gamesWon : stats.setsWon;
+                  const pointsLost = pointsFromGames ? stats.gamesLost : stats.setsLost;
+
+                  return (
+                    <tr key={stats.player.id}>
+                      <td className="rank-cell">
+                        {idx === 0 && stats.matchesWon > 0 ? '🥇' : idx === 1 && stats.matchesWon > 0 ? '🥈' : idx === 2 && stats.matchesWon > 0 ? '🥉' : idx + 1}
+                      </td>
+                      <td className="player-cell">{stats.player.name}</td>
+                      <td className="skill-cell">{stats.player.skillLevel || '-'}</td>
+                      <td>{stats.matchesPlayed}</td>
+                      <td className="win-cell">{stats.matchesWon}</td>
+                      <td className="loss-cell">{stats.matchesLost}</td>
+                      <td className="winrate-cell">
+                        {stats.matchesPlayed > 0 ? `${stats.winRate.toFixed(1)}%` : '-'}
+                      </td>
+                      <td>{pointsWon} / {pointsLost}</td>
+                      {!isPointsMode && (
+                        <td>{stats.gamesWon} / {stats.gamesLost}</td>
+                      )}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

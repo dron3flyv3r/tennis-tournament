@@ -74,6 +74,10 @@ export interface TournamentReport {
   tournamentName: string;
   totalMatches: number;
   completedMatches: number;
+  scoring: {
+    mode: 'sets' | 'points';
+    pointsSource: 'score' | 'games';
+  };
   playerStats: PlayerStats[];
   funStats: {
     mostWins: PlayerStats | null;

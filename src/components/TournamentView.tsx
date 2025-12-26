@@ -129,7 +129,7 @@ const TournamentView: React.FC<TournamentViewProps> = ({
   };
 
   if (showReport) {
-    const report = generateReport(matches, players, config.tournamentName);
+    const report = generateReport(matches, players, config.tournamentName, config.scoringMode);
     return (
       <TournamentReport 
         report={report} 
